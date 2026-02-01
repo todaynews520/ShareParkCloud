@@ -1,6 +1,7 @@
 // pages/reserve/reserve.js - 车位预约页面
 const app = getApp();
 const { showToast, showModal, showLoading, hideLoading, validatePlate, formatDuration } = require('../../utils/common');
+const TEMPLATE_IDS = require('../../config/template.js');
 
 Page({
   /**
@@ -116,20 +117,28 @@ Page({
 
   /**
    * 订阅消息
+   * 需要在微信公众平台配置模板消息
    */
   async onSubscribeMessage() {
     try {
       showLoading('正在请求通知权限...');
 
-      // 订阅模板消息
+      // 订阅多个模板消息
       const res = await wx.requestSubscribeMessage({
-        tmplIds: ['YOUR_TEMPLATE_ID'] // 替换为您的模板消息ID
+        tmplIds: [
+          TEMPLATE_IDS.RESERVATION_SUCCESS,
+          TEMPLATE_IDS.RESERVATION_CANCEL
+        ]
       });
 
       hideLoading();
 
-      if (res['YOUR_TEMPLATE_ID'] === 'accept') {
+      // 检查订阅状态
+      const hasSubscribed = Object.values(res).some(status => status === 'accept');
+
+      if (hasSubscribed) {
         wx.setStorageSync('reserve_subscribed', true);
+        wx.setStorageSync('reserve_subscribe_time', Date.now());
         this.setData({ hasSubscribed: true });
         showToast('已开启通知提醒');
       } else {
@@ -138,7 +147,11 @@ Page({
     } catch (err) {
       hideLoading();
       console.error('订阅失败:', err);
-      showToast('订阅失败，请手动授权');
+      // 用户拒绝授权或不处理，不影响预约流程
+      if (err.errCode === 20004) {
+        // 用户关闭了总开关
+        showToast('请在设置中开启通知权限');
+      }
     }
   },
 
@@ -240,32 +253,43 @@ Page({
   },
 
   /**
-   * 发送订阅消息
+   * 发送订阅消息（使用云函数）
    */
   async sendSubscribeMessage(releaseInfo) {
     try {
       const openid = app.globalData.openid || wx.getStorageSync('openid');
 
-      await wx.cloud.sendSubscribeMessage({
-        touser: openid,
-        page: '/pages/reserve/reserve?id=' + this.data.releaseId,
+      // 调用云函数发送订阅消息
+      await wx.cloud.callFunction({
+        name: 'notify',
         data: {
-          thing1: {
-            value: this.data.plateNumber || ''
-          },
-          thing2: {
-            value: releaseInfo.date + ' ' + releaseInfo.start_time + '-' + releaseInfo.end_time
-          },
-          thing3: {
-            value: releaseInfo.parking_info && releaseInfo.parking_info.spot_number || '未知'
-          },
-          thing4: {
-            value: '车位预约成功'
+          type: 'reservation_success',
+          touser: openid,
+          page: '/pages/personal/personal',
+          data: {
+            thing1: {
+              value: releaseInfo.parking_info && releaseInfo.parking_info.spot_number || '未知'
+            },
+            thing2: {
+              value: `${releaseInfo.date} ${releaseInfo.start_time}-${releaseInfo.end_time}`
+            },
+            thing3: {
+              value: this.data.plateNumber || '未填写'
+            },
+            thing4: {
+              value: '共享车位'
+            },
+            date5: {
+              value: releaseInfo.date || ''
+            }
           }
         }
       });
+
+      console.log('订阅消息发送成功');
     } catch (err) {
       console.error('发送订阅消息失败:', err);
+      // 不影响预约流程，静默处理
     }
   },
 

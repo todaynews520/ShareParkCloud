@@ -278,6 +278,14 @@ Page({
   async doCancelReservation(reservationId, releaseId) {
     try {
       const db = app.getDB();
+      const openid = app.globalData.openid || wx.getStorageSync('openid');
+
+      // 先获取预约信息，用于发送通知
+      const reservationRes = await db.collection('reservations')
+        .doc(reservationId)
+        .get();
+
+      const reservation = reservationRes.data;
 
       // 更新预约状态
       await db.collection('reservations')
@@ -296,6 +304,40 @@ Page({
             status: 'available'
           }
         });
+
+      // 发送取消预约通知（静默处理，不影响主流程）
+      if (reservation) {
+        try {
+          await wx.cloud.callFunction({
+            name: 'notify',
+            data: {
+              type: 'reservation_cancel',
+              touser: openid,
+              page: '/pages/personal/personal',
+              data: {
+                thing1: {
+                  value: reservation.spot_number || '未知'
+                },
+                thing2: {
+                  value: `${reservation.date} ${reservation.start_time}-${reservation.end_time}`
+                },
+                thing3: {
+                  value: reservation.plate_number || '未填写'
+                },
+                thing4: {
+                  value: '共享车位'
+                },
+                date5: {
+                  value: reservation.date || ''
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.error('发送取消通知失败:', err);
+          // 静默处理，不影响主流程
+        }
+      }
 
       showToast('已取消预约');
 
