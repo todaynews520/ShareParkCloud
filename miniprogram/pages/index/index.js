@@ -265,6 +265,11 @@ Page({
   async loadFavorites() {
     try {
       const openid = app.globalData.openid || wx.getStorageSync('openid');
+      if (!openid) {
+        // 未登录，不加载收藏
+        return;
+      }
+
       const db = app.getDB();
 
       const res = await db.collection('favorites')
@@ -281,7 +286,14 @@ Page({
       }));
       this.setData({ parkingList: updatedList });
     } catch (err) {
-      console.error('加载收藏失败:', err);
+      // 集合不存在或其他错误，静默处理
+      if (err.errCode === -502005) {
+        // 集合不存在，首次使用收藏功能
+        console.log('favorites集合不存在，将在首次添加收藏时自动创建');
+        this.setData({ favoriteParkingIds: [] });
+      } else {
+        console.error('加载收藏失败:', err);
+      }
     }
   },
 
