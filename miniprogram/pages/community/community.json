@@ -1,6 +1,6 @@
 {
   "usingComponents": {
-    "custom-tab-bar": "/components/customTabBar/index"
+    "custom-tab-bar": "/components/customTabBar/custom-tab-bar"
   },
   "navigationBarTitleText": "小区管理"
 }
