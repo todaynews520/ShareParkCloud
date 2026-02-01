@@ -11,7 +11,9 @@
       "Bash(ping:*)",
       "Bash(git remote set-url:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\n优化UI和修复功能\n\n- 优化个人中心预约记录UI，按钮移到卡片外部\n- 统一状态标签配色方案（蓝/紫/绿/黄/灰）\n- 简化表单样式，优化间距和圆角\n- 修复查询语法问题（使用 db.command.in）\n- 移除发布页面的车牌号输入\n- 更新微信登录授权为最新API\n- 添加自定义tab bar组件\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n优化UI和修复功能\n\n- 优化个人中心预约记录UI，按钮移到卡片外部\n- 统一状态标签配色方案（蓝/紫/绿/黄/灰）\n- 简化表单样式，优化间距和圆角\n- 修复查询语法问题（使用 db.command.in）\n- 移除发布页面的车牌号输入\n- 更新微信登录授权为最新API\n- 添加自定义tab bar组件\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "mcp__web-search-prime__webSearchPrime",
+      "mcp__zread__read_file"
     ]
   }
 }

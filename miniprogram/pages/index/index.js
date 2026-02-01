@@ -15,9 +15,7 @@ Page({
     loadingMore: false, // 加载更多状态
     hasMore: true, // 是否还有更多数据
     currentPage: 1, // 当前页码
-    pageSize: 10, // 每页数量
-    showFavoritesOnly: false, // 只显示收藏
-    favoriteParkingIds: [] // 收藏的车位ID列表
+    pageSize: 10 // 每页数量
   },
 
   /**
@@ -44,9 +42,6 @@ Page({
         selected: 0
       });
     }
-
-    // 加载收藏状态
-    this.loadFavorites();
 
     // 刷新车位列表数据
     this.loadParkingList(true);
@@ -153,41 +148,82 @@ Page({
 
   /**
    * 加载车位详细信息
+   * 使用批量查询优化性能，避免N+1查询问题
    */
   async loadParkingInfo(parkingList) {
     const db = app.getDB();
     const newParkingList = [];
 
+    // 收集所有需要查询的parking_id和owner_openid
+    const parkingIds = [];
+    const ownerOpenids = [];
+
+    for (const item of parkingList) {
+      if (item.parking_id && item.parking_id._id) {
+        parkingIds.push(item.parking_id._id);
+      }
+      if (item.owner_id && item.owner_id.openid) {
+        ownerOpenids.push(item.owner_id.openid);
+      }
+    }
+
+    // 批量查询parkings（使用in操作符）
+    let parkingsMap = {};
+    if (parkingIds.length > 0) {
+      try {
+        const parkingsRes = await db.collection('parkings')
+          .where({
+            _id: db.command.in(parkingIds.slice(0, 20)) // 限制一次最多查询20个
+          })
+          .get();
+
+        // 构建map方便查找
+        parkingsRes.data.forEach(p => {
+          parkingsMap[p._id] = p;
+        });
+      } catch (err) {
+        console.error('批量查询parkings失败:', err);
+      }
+    }
+
+    // 批量查询users（使用in操作符）
+    let usersMap = {};
+    if (ownerOpenids.length > 0) {
+      try {
+        const usersRes = await db.collection('users')
+          .where({
+            openid: db.command.in(ownerOpenids.slice(0, 20)) // 限制一次最多查询20个
+          })
+          .get();
+
+        // 构建map方便查找
+        usersRes.data.forEach(u => {
+          usersMap[u.openid] = u;
+        });
+      } catch (err) {
+        console.error('批量查询users失败:', err);
+      }
+    }
+
+    // 组装数据
     for (const item of parkingList) {
       try {
-        // 加载车位信息
+        // 从map中获取车位信息
         if (item.parking_id && item.parking_id._id) {
-          const parkingRes = await db.collection('parkings')
-            .doc(item.parking_id._id)
-            .get();
-
-          item.parking_info = parkingRes.data;
+          item.parking_info = parkingsMap[item.parking_id._id] || { spot_number: '未知' };
         }
 
-        // 加载发布者信息
+        // 从map中获取用户信息
         if (item.owner_id && item.owner_id.openid) {
-          const userRes = await db.collection('users')
-            .where({ openid: item.owner_id.openid })
-            .get();
-
-          item.owner_info = userRes.data[0] || {};
+          item.owner_info = usersMap[item.owner_id.openid] || { nickname: '业主' };
         }
-
-        // 设置收藏状态
-        item.isFavorite = this.data.favoriteParkingIds.includes(item._id);
 
         newParkingList.push(item);
       } catch (err) {
-        console.error('加载车位信息失败:', err);
+        console.error('组装车位信息失败:', err);
         // 失败时使用默认信息
         item.parking_info = { spot_number: '未知' };
         item.owner_info = { nickname: '业主' };
-        item.isFavorite = false;
         newParkingList.push(item);
       }
     }
@@ -247,124 +283,14 @@ Page({
   },
 
   /**
-   * 防抖函数
+   * 刷新列表（供页面调用）
    */
-  debounce(func, wait = 300) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        func.apply(this, args);
-      }, wait);
-    };
-  },
-
-  /**
-   * 加载用户收藏的车位列表
-   */
-  async loadFavorites() {
-    try {
-      const openid = app.globalData.openid || wx.getStorageSync('openid');
-      if (!openid) {
-        // 未登录，不加载收藏
-        return;
-      }
-
-      const db = app.getDB();
-
-      const res = await db.collection('favorites')
-        .where({ user_id: openid })
-        .get();
-
-      const favoriteIds = res.data.map(item => item.parking_id);
-      this.setData({ favoriteParkingIds: favoriteIds });
-
-      // 更新列表中的收藏状态
-      const updatedList = this.data.parkingList.map(item => ({
-        ...item,
-        isFavorite: favoriteIds.includes(item._id)
-      }));
-      this.setData({ parkingList: updatedList });
-    } catch (err) {
-      // 集合不存在或其他错误，静默处理
-      if (err.errCode === -502005) {
-        // 集合不存在，首次使用收藏功能
-        console.log('favorites集合不存在，将在首次添加收藏时自动创建');
-        this.setData({ favoriteParkingIds: [] });
-      } else {
-        console.error('加载收藏失败:', err);
-      }
-    }
-  },
-
-  /**
-   * 切换收藏状态
-   */
-  async onToggleFavorite(e) {
-    e.stopPropagation(); // 阻止事件冒泡
-    const id = e.currentTarget.dataset.id;
-    const index = e.currentTarget.dataset.index;
-
-    const isOpenFavorite = !this.data.parkingList[index].isFavorite;
-    const openid = app.globalData.openid || wx.getStorageSync('openid');
-    const db = app.getDB();
-
-    try {
-      if (isOpenFavorite) {
-        // 添加收藏
-        await db.collection('favorites').add({
-          data: {
-            user_id: openid,
-            parking_id: id,
-            create_time: new Date().getTime()
-          }
-        });
-        showToast('已收藏');
-      } else {
-        // 取消收藏
-        const res = await db.collection('favorites')
-          .where({ user_id: openid, parking_id: id })
-          .get();
-
-        if (res.data.length > 0) {
-          await db.collection('favorites').doc(res.data[0]._id).remove();
-        }
-        showToast('已取消收藏');
-      }
-
-      // 更新本地状态
-      const updatedList = [...this.data.parkingList];
-      updatedList[index].isFavorite = isOpenFavorite;
-      this.setData({ parkingList: updatedList });
-
-      // 更新收藏ID列表
-      if (isOpenFavorite) {
-        this.setData({ favoriteParkingIds: [...this.data.favoriteParkingIds, id] });
-      } else {
-        this.setData({
-          favoriteParkingIds: this.data.favoriteParkingIds.filter(fid => fid !== id)
-        });
-      }
-    } catch (err) {
-      console.error('操作收藏失败:', err);
-      showToast('操作失败');
-    }
-  },
-
-  /**
-   * 切换只显示收藏
-   */
-  onToggleShowFavorites() {
-    const newValue = !this.data.showFavoritesOnly;
-    this.setData({ showFavoritesOnly: newValue });
-
-    if (newValue) {
-      // 过滤只显示收藏的
-      const filteredList = this.data.parkingList.filter(item => item.isFavorite);
-      this.setData({ parkingList: filteredList });
-    } else {
-      // 重新加载全部
-      this.loadParkingList(true);
-    }
+  onRefresh() {
+    this.setData({
+      currentPage: 1,
+      hasMore: true,
+      parkingList: []
+    });
+    this.loadParkingList(true);
   }
 });

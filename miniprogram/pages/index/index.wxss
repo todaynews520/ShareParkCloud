@@ -21,7 +21,7 @@ page {
 /* ========== 头部横幅 - 全宽渐变 ========== */
 .header-banner {
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   padding: 50rpx 24rpx 40rpx;
   box-sizing: border-box;
   position: relative;
@@ -68,8 +68,8 @@ page {
   width: 100%;
   margin: 16rpx 0;
   padding: 16rpx 24rpx;
-  background: rgba(102, 126, 234, 0.08);
-  border-left: 6rpx solid #667eea;
+  background: rgba(13, 148, 136, 0.08);
+  border-left: 6rpx solid #0d9488;
   display: flex;
   align-items: center;
   gap: 12rpx;
@@ -90,7 +90,7 @@ page {
 }
 
 .highlight {
-  color: #667eea;
+  color: #0d9488;
   font-weight: 600;
 }
 
@@ -135,14 +135,14 @@ page {
   transform: translateY(-50%);
   width: 6rpx;
   height: 28rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   border-radius: 3rpx;
 }
 
 .count-badge {
   font-size: 22rpx;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: #0d9488;
+  background: rgba(13, 148, 136, 0.1);
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
   font-weight: 600;
@@ -159,7 +159,7 @@ page {
   align-items: center;
   gap: 4rpx;
   font-size: 26rpx;
-  color: #667eea;
+  color: #0d9488;
   padding: 8rpx 16rpx;
   background: #fff;
   border-radius: 24rpx;
@@ -167,22 +167,12 @@ page {
   transition: all 0.2s;
 }
 
-.action-tag.favorite.active {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-  color: #667eea;
-  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.2);
-}
-
-.heart-icon {
-  font-size: 20rpx;
-}
-
 .filter-tag {
   display: flex;
   align-items: center;
   gap: 4rpx;
   font-size: 26rpx;
-  color: #667eea;
+  color: #0d9488;
   padding: 8rpx 16rpx;
   background: #fff;
   border-radius: 24rpx;
@@ -215,8 +205,8 @@ page {
 .spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid rgba(102, 126, 234, 0.1);
-  border-top: 4rpx solid #667eea;
+  border: 4rpx solid rgba(13, 148, 136, 0.1);
+  border-top: 4rpx solid #0d9488;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -257,12 +247,12 @@ page {
 
 .retry-btn {
   padding: 22rpx 56rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   color: #fff;
   border-radius: 40rpx;
   font-size: 28rpx;
   font-weight: 600;
-  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 20rpx rgba(13, 148, 136, 0.3);
 }
 
 .retry-btn:active {
@@ -282,7 +272,7 @@ page {
 
 .empty-icon {
   font-size: 72rpx;
-  color: #667eea;
+  color: #0d9488;
   font-weight: bold;
 }
 
@@ -310,7 +300,7 @@ page {
 }
 
 .card-header {
-  background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%);
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
   padding: 24rpx;
   display: flex;
   justify-content: space-between;
@@ -323,27 +313,6 @@ page {
   gap: 12rpx;
 }
 
-.favorite-btn {
-  width: 56rpx;
-  height: 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.favorite-btn.active {
-  background: rgba(255, 182, 193, 0.3);
-  transform: scale(1.1);
-}
-
-.favorite-btn:active {
-  transform: scale(0.95);
-}
-
 .spot-info {
   display: flex;
   flex-direction: column;
@@ -352,7 +321,7 @@ page {
 
 .spot-number {
   font-size: 40rpx;
-  color: #667eea;
+  color: #0d9488;
   font-weight: 700;
   letter-spacing: 2rpx;
   line-height: 1;
@@ -432,7 +401,7 @@ page {
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 16rpx;
-  background: rgba(102, 126, 234, 0.05);
+  background: rgba(13, 148, 136, 0.05);
   border-radius: 8rpx;
   margin-bottom: 16rpx;
 }
@@ -443,7 +412,7 @@ page {
 
 .duration-text {
   font-size: 24rpx;
-  color: #667eea;
+  color: #0d9488;
   font-weight: 500;
 }
 
@@ -474,14 +443,14 @@ page {
 
 .action-hint {
   font-size: 28rpx;
-  color: #667eea;
+  color: #0d9488;
   font-weight: 600;
 }
 
 .action-btn-icon {
   width: 48rpx;
   height: 48rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -505,8 +474,8 @@ page {
 .spinner-small {
   width: 32rpx;
   height: 32rpx;
-  border: 4rpx solid rgba(102, 126, 234, 0.1);
-  border-top: 4rpx solid #667eea;
+  border: 4rpx solid rgba(13, 148, 136, 0.1);
+  border-top: 4rpx solid #0d9488;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -644,11 +613,105 @@ page {
 }
 
 .filter-btn.confirm {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   color: #fff;
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(13, 148, 136, 0.3);
 }
 
 .filter-btn.confirm:active {
   transform: scale(0.95);
+}
+
+/* ========== 价格显示 ========== */
+.price-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
+.price-currency {
+  font-size: 24rpx;
+  color: #f97316;
+  font-weight: 600;
+}
+
+.price-value {
+  font-size: 40rpx;
+  color: #f97316;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.price-unit {
+  font-size: 20rpx;
+  color: #9ca3af;
+}
+
+/* ========== 车位特性标签 ========== */
+.feature-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin: 12rpx 0;
+}
+
+.feature-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-size: 20rpx;
+  font-weight: 500;
+  border: 1rpx solid;
+}
+
+.feature-tag.charging {
+  background: #dbeafe;
+  color: #2563eb;
+  border-color: #93c5fd;
+}
+
+.feature-tag.monitoring {
+  background: #f3e8ff;
+  color: #7c3aed;
+  border-color: #c4b5fd;
+}
+
+.feature-tag.indoor {
+  background: #d1fae5;
+  color: #059669;
+  border-color: #6ee7b7;
+}
+
+.feature-tag.outdoor {
+  background: #fef3c7;
+  color: #d97706;
+  border-color: #fcd34d;
+}
+
+.feature-tag.large {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #d1d5db;
+}
+
+/* ========== 用户评分 ========== */
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2rpx;
+  font-size: 20rpx;
+  color: #fbbf24;
+}
+
+.rating-score {
+  font-size: 20rpx;
+  color: #6b7280;
+  font-weight: 500;
 }

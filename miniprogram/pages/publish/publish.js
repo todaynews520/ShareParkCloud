@@ -1,6 +1,8 @@
 // pages/publish/publish.js - 车位发布页面
 const app = getApp();
 const { showToast, showModal, showLoading, hideLoading, formatDuration, isTimeRangeOverlap } = require('../../utils/common');
+const { Validator } = require('../../utils/validator');
+const ErrorHandler = require('../../utils/errorHandler');
 
 Page({
   /**
@@ -15,8 +17,26 @@ Page({
     selectedDuration: { hours: 0, minutes: 0 },
     durationText: '',
     today: '',
-    submitting: false
+    submitting: false,
+    // 表单验证状态
+    formErrors: {
+      spotNumber: '',
+      date: '',
+      startTime: '',
+      duration: ''
+    },
+    // 冲突检查状态
+    checkingConflict: false,
+    hasConflict: false,
+    conflictMessage: '',
+    // 草稿恢复提示
+    showDraftTip: false
   },
+
+  // 草稿保存定时器
+  draftTimer: null,
+  // 冲突检查防抖定时器
+  conflictTimer: null,
 
   /**
    * 生命周期函数--监听页面加载
@@ -28,23 +48,77 @@ Page({
     // 生成1-24小时时长选项
     const durationOptions = this.generateDurationOptions();
 
+    // 尝试恢复草稿
+    const draft = this.loadDraft();
+
     // 获取当前用户上次使用的车位号
     const openid = app.globalData.openid || wx.getStorageSync('openid');
     const lastSpotNumber = wx.getStorageSync(`last_spot_${openid}`);
 
     this.setData({
       today: today,
-      date: today, // 默认今天
-      startTime: currentTime, // 默认当前时间
-      spotNumber: lastSpotNumber || '', // 加载上次使用的车位号
+      currentTime: currentTime,
+      date: draft?.date || today,
+      startTime: draft?.startTime || currentTime,
+      spotNumber: draft?.spotNumber || lastSpotNumber || '',
       durationTexts: durationOptions.displayTexts,
       durationOptions: durationOptions.options,
-      durationIndex: 0,
-      selectedDuration: { hours: 1, minutes: 0 }
+      durationIndex: draft?.durationIndex || 0,
+      selectedDuration: { hours: 1, minutes: 0 },
+      showDraftTip: !!draft
     });
 
     // 自动计算结束时间
     this.calculateDurationFromStartTime();
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload() {
+    // 清除定时器
+    if (this.draftTimer) {
+      clearTimeout(this.draftTimer);
+    }
+    if (this.conflictTimer) {
+      clearTimeout(this.conflictTimer);
+    }
+  },
+
+  /**
+   * 保存草稿
+   */
+  saveDraft() {
+    const draft = {
+      spotNumber: this.data.spotNumber,
+      date: this.data.date,
+      startTime: this.data.startTime,
+      durationIndex: this.data.durationIndex
+    };
+    wx.setStorageSync('publish_draft', draft);
+  },
+
+  /**
+   * 加载草稿
+   */
+  loadDraft() {
+    try {
+      const draft = wx.getStorageSync('publish_draft');
+      // 草稿有效期1小时
+      if (draft && Date.now() - draft.timestamp < 60 * 60 * 1000) {
+        return draft;
+      }
+    } catch (e) {
+      console.error('加载草稿失败:', e);
+    }
+    return null;
+  },
+
+  /**
+   * 清除草稿
+   */
+  clearDraft() {
+    wx.removeStorageSync('publish_draft');
   },
 
   /**
@@ -59,44 +133,84 @@ Page({
   },
 
   /**
-   * 车位号输入
+   * 车位号输入 - 带实时验证
    */
   onSpotNumberInput(e) {
     const value = e.detail.value.trim();
-    this.setData({ spotNumber: value });
+    this.setData({ spotNumber: value, hasConflict: false });
 
-    // 保存到本地存储
-    const openid = app.globalData.openid || wx.getStorageSync('openid');
-    wx.setStorageSync(`last_spot_${openid}`, value);
+    // 实时验证
+    if (value) {
+      const result = Validator.spotNumber(value, { required: true, minLength: 1, maxLength: 10 });
+      this.setData({
+        'formErrors.spotNumber': result.valid ? '' : result.message
+      });
+    } else {
+      this.setData({ 'formErrors.spotNumber': '' });
+    }
+
+    // 防抖保存草稿
+    this.debouncedSaveDraft();
+  },
+
+  /**
+   * 防抖保存草稿
+   */
+  debouncedSaveDraft() {
+    if (this.draftTimer) {
+      clearTimeout(this.draftTimer);
+    }
+    this.draftTimer = setTimeout(() => {
+      this.saveDraft();
+    }, 1000);
   },
 
   /**
    * 日期选择
    */
   onDateChange(e) {
+    const date = e.detail.value;
+    this.setData({ date, hasConflict: false });
+
+    // 验证日期
+    const result = Validator.date(date, { required: true, allowPast: false });
     this.setData({
-      date: e.detail.value
+      'formErrors.date': result.valid ? '' : result.message
     });
+
+    this.debouncedSaveDraft();
+    this.debouncedCheckConflict();
   },
 
   /**
    * 开始时间选择
    */
   onStartTimeChange(e) {
-    this.setData({
-      startTime: e.detail.value
-    });
+    const startTime = e.detail.value;
+    this.setData({ startTime, hasConflict: false });
+
+    // 验证时间格式
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime)) {
+      this.setData({ 'formErrors.startTime': '时间格式不正确' });
+    } else {
+      this.setData({ 'formErrors.startTime': '' });
+    }
+
     this.calculateDuration();
+    this.debouncedSaveDraft();
+    this.debouncedCheckConflict();
   },
 
   /**
    * 结束时间选择
    */
   onEndTimeChange(e) {
-    this.setData({
-      endTime: e.detail.value
-    });
+    const endTime = e.detail.value;
+    this.setData({ endTime, hasConflict: false });
+
     this.calculateDurationFromEndTime();
+    this.debouncedCheckConflict();
   },
 
   /**
@@ -109,10 +223,65 @@ Page({
     this.setData({
       durationIndex: index,
       selectedDuration: { hours: 0, minutes: totalMinutes },
-      endTime: '' // 清空结束时间
+      endTime: '', // 清空结束时间
+      hasConflict: false,
+      'formErrors.duration': ''
     });
 
     this.calculateDurationFromStartTime();
+    this.debouncedSaveDraft();
+    this.debouncedCheckConflict();
+  },
+
+  /**
+   * 防抖检查冲突
+   */
+  debouncedCheckConflict() {
+    if (this.conflictTimer) {
+      clearTimeout(this.conflictTimer);
+    }
+
+    // 只有当必要字段都填写时才检查冲突
+    if (!this.data.spotNumber || !this.data.date || !this.data.startTime || !this.data.endTime) {
+      return;
+    }
+
+    this.setData({ checkingConflict: true });
+
+    this.conflictTimer = setTimeout(() => {
+      this.checkConflictDisplay();
+    }, 800);
+  },
+
+  /**
+   * 检查冲突并显示提示（不阻止用户继续操作）
+   */
+  async checkConflictDisplay() {
+    try {
+      const hasConflict = await this.checkConflict(
+        this.data.spotNumber,
+        this.data.date,
+        this.data.startTime,
+        this.data.endTime
+      );
+
+      if (hasConflict) {
+        this.setData({
+          hasConflict: true,
+          conflictMessage: `⚠️ ${this.data.spotNumber}号车位在${this.data.startTime}-${this.data.endTime}已被占用`,
+          checkingConflict: false
+        });
+      } else {
+        this.setData({
+          hasConflict: false,
+          conflictMessage: '',
+          checkingConflict: false
+        });
+      }
+    } catch (err) {
+      console.error('检查冲突失败:', err);
+      this.setData({ checkingConflict: false });
+    }
   },
 
   /**
@@ -147,8 +316,11 @@ Page({
       const end = app.getUtils().timeStringToMinutes(this.data.endTime);
 
       if (end <= start) {
-        return; // 结束时间必须大于开始时间
+        this.setData({ 'formErrors.startTime': '结束时间必须大于开始时间' });
+        return;
       }
+
+      this.setData({ 'formErrors.startTime': '' });
 
       const diffMinutes = end - start;
 
@@ -191,8 +363,11 @@ Page({
       const end = app.getUtils().timeStringToMinutes(this.data.endTime);
 
       if (end <= start) {
+        this.setData({ 'formErrors.startTime': '结束时间必须大于开始时间' });
         return;
       }
+
+      this.setData({ 'formErrors.startTime': '' });
 
       const diffMinutes = end - start;
 
@@ -209,7 +384,7 @@ Page({
       this.setData({
         duration: `${hours}小时`,
         selectedDuration: { hours: hours, minutes: 0 },
-        durationIndex: index >= 0 ? index : 0
+        durationIndex: index >= 0 ? index : -1
       });
     } catch (err) {
       console.error('计算时长失败:', err);
@@ -250,32 +425,64 @@ Page({
   },
 
   /**
+   * 验证表单
+   */
+  validateForm() {
+    const errors = { spotNumber: '', date: '', startTime: '', duration: '' };
+    let isValid = true;
+
+    // 验证车位号
+    const spotResult = Validator.spotNumber(this.data.spotNumber, { required: true });
+    if (!spotResult.valid) {
+      errors.spotNumber = spotResult.message;
+      isValid = false;
+    }
+
+    // 验证日期
+    const dateResult = Validator.date(this.data.date, { required: true });
+    if (!dateResult.valid) {
+      errors.date = dateResult.message;
+      isValid = false;
+    }
+
+    // 验证开始时间
+    if (!this.data.startTime) {
+      errors.startTime = '请选择开始时间';
+      isValid = false;
+    }
+
+    // 验证时长
+    if (!this.data.endTime || !this.data.duration) {
+      errors.duration = '请选择时长';
+      isValid = false;
+    }
+
+    // 验证时间范围
+    if (this.data.startTime && this.data.endTime) {
+      const timeResult = Validator.timeRange(this.data.startTime, this.data.endTime, { minDuration: 60 });
+      if (!timeResult.valid) {
+        errors.duration = timeResult.message;
+        isValid = false;
+      }
+    }
+
+    this.setData({ formErrors: errors });
+    return isValid;
+  },
+
+  /**
    * 提交发布
    */
   async onSubmit() {
     // 表单验证
-    if (!this.data.spotNumber) {
-      showToast('请输入车位号');
+    if (!this.validateForm()) {
+      showToast('请检查表单填写');
       return;
     }
 
-    if (!this.data.date) {
-      showToast('请选择日期');
-      return;
-    }
-
-    if (!this.data.startTime) {
-      showToast('请选择开始时间');
-      return;
-    }
-
-    if (!this.data.endTime) {
-      showToast('请先选择时长');
-      return;
-    }
-
-    if (!this.data.duration || this.data.duration.length < 2) {
-      showToast('请选择时长（最小时长1小时）');
+    // 冲突检查
+    if (this.data.hasConflict) {
+      showToast(this.data.conflictMessage || '该车位在此时间段已被占用');
       return;
     }
 
@@ -287,18 +494,31 @@ Page({
       // 获取当前用户信息
       const openid = app.globalData.openid || wx.getStorageSync('openid');
 
-      // 1. 先创建车位信息到parkings集合
-      const parkingsRes = await app.getDB().collection('parkings').add({
-        data: {
+      // 1. 检查车位是否已存在，避免重复创建
+      let parkingId;
+      const existingParking = await app.getDB().collection('parkings')
+        .where({
           spot_number: this.data.spotNumber,
-          owner_id: openid,
-          create_time: new Date().getTime()
-        }
-      });
+          owner_id: openid
+        })
+        .get();
 
-      const parkingId = parkingsRes._id;
+      if (existingParking.data.length > 0) {
+        // 车位已存在，使用已有的parking_id
+        parkingId = existingParking.data[0]._id;
+      } else {
+        // 车位不存在，创建新的parking记录
+        const parkingsRes = await app.getDB().collection('parkings').add({
+          data: {
+            spot_number: this.data.spotNumber,
+            owner_id: openid,
+            create_time: new Date().getTime()
+          }
+        });
+        parkingId = parkingsRes._id;
+      }
 
-      // 2. 检查时间段冲突
+      // 2. 再次检查时间段冲突（防止并发）
       const hasConflict = await this.checkConflict(
         this.data.spotNumber,
         this.data.date,
@@ -308,8 +528,12 @@ Page({
 
       if (hasConflict) {
         hideLoading();
-        showToast('该车位在此时间段已被占用');
-        this.setData({ submitting: false });
+        showModal({
+          title: '发布失败',
+          content: '该车位在此时间段刚刚被其他用户占用，请重新选择时间',
+          showCancel: false
+        });
+        this.setData({ submitting: false, hasConflict: true });
         return;
       }
 
@@ -343,6 +567,9 @@ Page({
       hideLoading();
       showToast('发布成功');
 
+      // 清除草稿
+      this.clearDraft();
+
       // 保存车位号到本地存储
       wx.setStorageSync(`last_spot_${openid}`, this.data.spotNumber);
 
@@ -354,8 +581,11 @@ Page({
       }, 1500);
     } catch (err) {
       hideLoading();
-      console.error('发布失败:', err);
-      showToast('发布失败，请重试');
+      ErrorHandler.handle(err, {
+        context: 'publish.onSubmit',
+        showToast: true,
+        onRetry: () => this.onSubmit()
+      });
     } finally {
       this.setData({ submitting: false });
     }
@@ -394,6 +624,22 @@ Page({
    * 返回
    */
   onBack() {
-    wx.navigateBack();
+    // 检查是否有未提交的内容
+    if (this.data.spotNumber || this.data.date !== this.data.today) {
+      showModal({
+        title: '确认离开',
+        content: '您有未发布的内容，确定要离开吗？',
+        confirmText: '离开',
+        cancelText: '继续编辑',
+        success: (res) => {
+          if (res.confirm) {
+            this.saveDraft();
+            wx.navigateBack();
+          }
+        }
+      });
+    } else {
+      wx.navigateBack();
+    }
   }
 });

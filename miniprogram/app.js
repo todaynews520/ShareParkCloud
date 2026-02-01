@@ -1,5 +1,6 @@
 // app.js - 共享车位小程序主入口
 const utils = require('./utils/common');
+const ENV_CONFIG = require('./config/env');
 
 App({
   // 全局数据
@@ -29,7 +30,7 @@ App({
     // 初始化云开发
     if (wx.cloud) {
       wx.cloud.init({
-        env: 'cloud1-4gu1xbu13e161c48', // 替换为您的云开发环境ID
+        env: ENV_CONFIG.CLOUD_ENV,
         traceUser: true
       });
 

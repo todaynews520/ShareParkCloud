@@ -1,7 +1,8 @@
 {
   "description": "项目配置文件",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
   "setting": {
     "bundle": false,
@@ -40,7 +41,13 @@
     "disableUseStrict": false,
     "useStaticServer": true,
     "enableOverwriteWebpack": false,
-    "overwriteWebpack": false
+    "overwriteWebpack": false,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "libVersion": "2.20.1",

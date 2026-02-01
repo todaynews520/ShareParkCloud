@@ -2,7 +2,7 @@
 const cloud = require('wx-server-sdk');
 
 cloud.init({
-  env: 'cloud1-4gu1xbu13e161c48'
+  env: cloud.DYNAMIC_CURRENT_ENV // 自动使用当前环境
 });
 
 /**
@@ -51,17 +51,9 @@ exports.main = async (event, context) => {
       };
     }
 
-    // 方法5: 尝试使用 wx-server-sdk 的 getOpenId 方法
-    // 注意：这个方法可能不可用，取决于 SDK 版本
-    try {
-      const app = cloud.init({
-        env: 'cloud1-4gu1xbu13e161c48'
-      });
-      // wx-server-sdk 没有直接的 getOpenId 方法
-      // openid 只能从 context 中获取
-    } catch (e) {
-      console.log('SDK 方法不可用:', e.message);
-    }
+    // 方法5: 记录调试信息
+    // wx-server-sdk 的 openid 只能从 context 中获取
+    console.log('无法从上述方法获取 openid');
 
     // 所有方法都失败
     console.error('无法获取 openid，context 内容:', context);

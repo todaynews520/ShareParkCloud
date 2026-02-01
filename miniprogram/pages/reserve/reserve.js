@@ -1,6 +1,9 @@
 // pages/reserve/reserve.js - 车位预约页面
 const app = getApp();
 const { showToast, showModal, showLoading, hideLoading, validatePlate, formatDuration } = require('../../utils/common');
+const { encryptData, decryptData } = require('../../utils/crypto');
+const { Validator } = require('../../utils/validator');
+const ErrorHandler = require('../../utils/errorHandler');
 const TEMPLATE_IDS = require('../../config/template.js');
 
 Page({
@@ -13,7 +16,17 @@ Page({
     role: 'owner', // owner 或 property
     plateNumber: '', // 车牌号
     hasSubscribed: false, // 是否已订阅消息
-    submitting: false
+    submitting: false,
+    // 表单验证状态
+    formErrors: {
+      plateNumber: ''
+    },
+    // 页面状态
+    loading: true,
+    error: null,
+    // 车位状态检查
+    checkingStatus: false,
+    statusCheckTimer: null
   },
 
   /**
@@ -25,6 +38,18 @@ Page({
         releaseId: options.id
       });
       this.loadReleaseInfo(options.id);
+    } else {
+      this.setData({ error: '车位信息不存在', loading: false });
+    }
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload() {
+    // 清除状态检查定时器
+    if (this.data.statusCheckTimer) {
+      clearInterval(this.data.statusCheckTimer);
     }
   },
 
@@ -43,16 +68,45 @@ Page({
     if (!this.data.hasSubscribed) {
       this.setData({ hasSubscribed: wx.getStorageSync('reserve_subscribed') || false });
     }
+
+    // 检查车位状态（防止已被他人预约）
+    if (this.data.releaseId) {
+      this.checkParkingStatus();
+    }
   },
 
   /**
-   * 生命周期函数--监听页面显示
+   * 检查车位状态
    */
-  onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({
-        selected: 0
-      });
+  async checkParkingStatus() {
+    if (!this.data.releaseId || this.data.checkingStatus) {
+      return;
+    }
+
+    try {
+      this.setData({ checkingStatus: true });
+
+      const res = await app.getDB().collection('parking_releases')
+        .doc(this.data.releaseId)
+        .get();
+
+      if (res.data && res.data.status === 'reserved') {
+        // 车位已被预约
+        showModal({
+          title: '温馨提示',
+          content: '该车位刚刚已被其他用户预约，请查看其他车位',
+          showCancel: false,
+          success: () => {
+            wx.switchTab({
+              url: '/pages/index/index'
+            });
+          }
+        });
+      }
+    } catch (err) {
+      console.error('检查车位状态失败:', err);
+    } finally {
+      this.setData({ checkingStatus: false });
     }
   },
 
@@ -61,49 +115,97 @@ Page({
    */
   async loadReleaseInfo(id) {
     try {
+      this.setData({ loading: true, error: null });
       showLoading('加载中...');
 
       const res = await app.getDB().collection('parking_releases')
         .doc(id)
         .get();
 
-      if (res.data) {
-        // 加载车位信息
-        if (res.data.parking_id && res.data.parking_id._id) {
-          const parkingRes = await app.getDB().collection('parkings')
-            .doc(res.data.parking_id._id)
-            .get();
-          res.data.parking_info = parkingRes.data;
-        }
-
-        // 加载发布者信息
-        if (res.data.owner_id && res.data.owner_id.openid) {
-          const userRes = await app.getDB().collection('users')
-            .where({ openid: res.data.owner_id.openid })
-            .get();
-          res.data.owner_info = userRes.data[0] || {};
-        }
-
+      if (!res.data) {
         this.setData({
-          releaseInfo: res.data
+          error: '车位信息不存在',
+          loading: false
         });
+        hideLoading();
+        return;
       }
+
+      // 检查车位状态
+      if (res.data.status !== 'available') {
+        this.setData({
+          error: '该车位已被预约',
+          loading: false
+        });
+        hideLoading();
+        return;
+      }
+
+      // 加载车位信息
+      if (res.data.parking_id && res.data.parking_id._id) {
+        const parkingRes = await app.getDB().collection('parkings')
+          .doc(res.data.parking_id._id)
+          .get();
+        res.data.parking_info = parkingRes.data;
+      }
+
+      // 加载发布者信息
+      if (res.data.owner_id && res.data.owner_id.openid) {
+        const userRes = await app.getDB().collection('users')
+          .where({ openid: res.data.owner_id.openid })
+          .get();
+        res.data.owner_info = userRes.data[0] || {};
+      }
+
+      this.setData({
+        releaseInfo: res.data,
+        loading: false
+      });
+
+      // 启动状态定时检查（每30秒检查一次）
+      this.data.statusCheckTimer = setInterval(() => {
+        this.checkParkingStatus();
+      }, 30000);
 
       hideLoading();
     } catch (err) {
       hideLoading();
-      console.error('加载发布信息失败:', err);
-      showToast('加载失败');
+      this.setData({
+        error: '加载失败，请重试',
+        loading: false
+      });
+      ErrorHandler.handle(err, {
+        context: 'reserve.loadReleaseInfo',
+        showToast: false
+      });
     }
   },
 
   /**
-   * 车牌号输入
+   * 重新加载
+   */
+  onRetry() {
+    if (this.data.releaseId) {
+      this.loadReleaseInfo(this.data.releaseId);
+    }
+  },
+
+  /**
+   * 车牌号输入 - 带实时验证
    */
   onPlateInput(e) {
-    this.setData({
-      plateNumber: e.detail.value.trim()
-    });
+    const value = e.detail.value.trim().toUpperCase();
+    this.setData({ plateNumber: value });
+
+    // 实时验证车牌号
+    if (value) {
+      const result = Validator.plateNumber(value);
+      this.setData({
+        'formErrors.plateNumber': result.valid ? '' : result.message
+      });
+    } else {
+      this.setData({ 'formErrors.plateNumber': '' });
+    }
   },
 
   /**
@@ -142,7 +244,19 @@ Page({
         this.setData({ hasSubscribed: true });
         showToast('已开启通知提醒');
       } else {
-        showToast('取消订阅通知');
+        // 用户拒绝或关闭，提示但允许继续
+        showModal({
+          title: '提示',
+          content: '您未开启通知提醒，预约成功后将无法收到消息通知。是否继续？',
+          confirmText: '继续预约',
+          cancelText: '重新授权',
+          success: (res) => {
+            if (!res.confirm) {
+              // 用户选择重新授权
+              this.onSubscribeMessage();
+            }
+          }
+        });
       }
     } catch (err) {
       hideLoading();
@@ -150,40 +264,89 @@ Page({
       // 用户拒绝授权或不处理，不影响预约流程
       if (err.errCode === 20004) {
         // 用户关闭了总开关
-        showToast('请在设置中开启通知权限');
+        showModal({
+          title: '无法开启通知',
+          content: '您已关闭通知权限，请在系统设置中重新开启。是否继续预约？',
+          confirmText: '继续',
+          cancelText: '去设置',
+          success: (res) => {
+            if (res.confirm) {
+              // 继续预约流程
+            } else {
+              // 跳转到设置
+              wx.openSetting();
+            }
+          }
+        });
       }
     }
+  },
+
+  /**
+   * 验证表单
+   */
+  validateForm() {
+    const errors = { plateNumber: '' };
+    let isValid = true;
+
+    // 验证车牌号
+    if (this.data.role === 'owner') {
+      const plateResult = Validator.plateNumber(this.data.plateNumber, { required: true });
+      if (!plateResult.valid) {
+        errors.plateNumber = plateResult.message;
+        isValid = false;
+      }
+    }
+
+    this.setData({ formErrors: errors });
+    return isValid;
   },
 
   /**
    * 提交预约
    */
   async onSubmit() {
+    // 再次检查车位状态
+    if (this.data.releaseInfo && this.data.releaseInfo.status !== 'available') {
+      showModal({
+        title: '预约失败',
+        content: '该车位刚刚已被其他用户预约',
+        showCancel: false,
+        success: () => {
+          wx.switchTab({
+            url: '/pages/index/index'
+          });
+        }
+      });
+      return;
+    }
+
     // 表单验证
-    if (!this.data.releaseInfo) {
-      showToast('车位信息不存在');
+    if (!this.validateForm()) {
+      showToast('请检查表单填写');
       return;
     }
 
-    if (!this.data.plateNumber) {
-      showToast('请输入车牌号');
-      return;
-    }
+    // 如果未订阅，提示用户
+    if (!this.data.hasSubscribed) {
+      const confirmSubscribe = await new Promise((resolve) => {
+        showModal({
+          title: '开启通知',
+          content: '建议开启通知提醒，以便及时收到预约状态更新',
+          confirmText: '去开启',
+          cancelText: '跳过',
+          success: (res) => {
+            resolve(res.confirm);
+          },
+          fail: () => resolve(false)
+        });
+      });
 
-    if (!validatePlate(this.data.plateNumber)) {
-      showToast('车牌号格式不正确');
-      return;
-    }
-
-    if (this.data.role === 'owner' && !this.data.plateNumber) {
-      showToast('请输入车牌号');
-      return;
-    }
-
-    // 检查是否已预约
-    if (this.data.releaseInfo.status === 'reserved') {
-      showToast('该车位已被预约');
-      return;
+      if (confirmSubscribe) {
+        await this.onSubscribeMessage();
+        // 如果用户授权后订阅了，继续；否则继续预约
+        return;
+      }
     }
 
     this.setData({ submitting: true });
@@ -191,36 +354,55 @@ Page({
     try {
       showLoading('预约中...');
 
-      const db = app.getDB();
       const openid = app.globalData.openid || wx.getStorageSync('openid');
       const userInfo = app.globalData.userInfo || {};
 
-      // 更新发布状态
-      await db.collection('parking_releases')
-        .doc(this.data.releaseId)
-        .update({
-          data: {
-            status: 'reserved',
-            reserve_time: new Date().getTime()
-          }
-        });
+      // 加密车牌号
+      const encryptedPlateNumber = await encryptData(this.data.plateNumber);
 
-      // 创建预约记录
-      await db.collection('reservations').add({
+      // 调用云函数进行预约（使用事务确保原子性）
+      const reserveRes = await wx.cloud.callFunction({
+        name: 'reserve',
         data: {
-          release_id: this.data.releaseId,
-          user_id: openid,
-          user_nickname: userInfo.nickname || '业主',
-          plate_number: this.data.plateNumber,
-          role: this.data.role, // 记录角色
-          spot_number: this.data.releaseInfo.parking_info && this.data.releaseInfo.parking_info.spot_number || '未知',
-          date: this.data.releaseInfo.date,
-          start_time: this.data.releaseInfo.start_time,
-          end_time: this.data.releaseInfo.end_time,
-          status: 'confirmed',
-          reserve_time: new Date().getTime()
+          releaseId: this.data.releaseId,
+          plateNumber: encryptedPlateNumber,
+          role: this.data.role,
+          userInfo: userInfo
         }
       });
+
+      if (!reserveRes.result.success) {
+        hideLoading();
+        const errorMsg = reserveRes.result.errMsg || '预约失败，请重试';
+
+        // 针对不同错误给出不同提示
+        if (errorMsg.includes('已被预约')) {
+          showModal({
+            title: '预约失败',
+            content: '该车位刚刚已被其他用户预约，请查看其他车位',
+            showCancel: false,
+            success: () => {
+              wx.switchTab({
+                url: '/pages/index/index'
+              });
+            }
+          });
+          return;
+        }
+
+        showModal({
+          title: '预约失败',
+          content: errorMsg,
+          showCancel: false,
+          confirmText: '重试',
+          success: (res) => {
+            if (res.confirm) {
+              this.onSubmit();
+            }
+          }
+        });
+        return;
+      }
 
       // 调用通知函数
       await this.sendPropertyNotification(this.data.releaseInfo);
@@ -235,18 +417,27 @@ Page({
       }
 
       hideLoading();
-      showToast('预约成功');
 
-      // 延迟后返回首页
-      setTimeout(() => {
-        wx.switchTab({
-          url: '/pages/index/index'
-        });
-      }, 1500);
+      // 显示成功提示
+      showModal({
+        title: '预约成功',
+        content: `您已成功预约${this.data.releaseInfo.parking_info?.spot_number || '车位'}，可以在"个人中心"查看预约详情`,
+        showCancel: false,
+        confirmText: '查看详情',
+        success: () => {
+          wx.switchTab({
+            url: '/pages/personal/personal'
+          });
+        }
+      });
+
     } catch (err) {
       hideLoading();
-      console.error('预约失败:', err);
-      showToast('预约失败，请重试');
+      ErrorHandler.handle(err, {
+        context: 'reserve.onSubmit',
+        showToast: false,
+        onRetry: () => this.onSubmit()
+      });
     } finally {
       this.setData({ submitting: false });
     }

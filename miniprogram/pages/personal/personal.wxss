@@ -1,6 +1,6 @@
 /* 全局基础 */
 page {
-  background: #f7f8fa;
+  background: #f0fdfa;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -18,7 +18,7 @@ page {
 
 /* 头部区域 */
 .header-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   padding: 60rpx 24rpx 40rpx;
   box-sizing: border-box;
   display: flex;
@@ -123,8 +123,8 @@ page {
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-  color: #667eea;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  color: #0d9488;
 }
 
 .tab-text {
@@ -133,7 +133,7 @@ page {
 }
 
 .tab-badge {
-  background: #667eea;
+  background: #0d9488;
   color: #fff;
   font-size: 20rpx;
   min-width: 32rpx;
@@ -166,8 +166,8 @@ page {
 .spinner {
   width: 40rpx;
   height: 40rpx;
-  border: 4rpx solid rgba(102, 126, 234, 0.1);
-  border-top-color: #667eea;
+  border: 4rpx solid rgba(13, 148, 136, 0.1);
+  border-top-color: #0d9488;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -216,13 +216,13 @@ page {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  background: linear-gradient(135deg, rgba(102,126,234,0.06) 0%, rgba(118,75,162,0.06) 100%);
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%);
   border-bottom: 1rpx solid rgba(0,0,0,0.03);
 }
 
 .spot-number {
   font-size: 36rpx;
-  color: #667eea;
+  color: #0d9488;
   font-weight: 700;
   letter-spacing: 1rpx;
 }
@@ -358,13 +358,13 @@ page {
 }
 
 .action-btn.detail-btn {
-  color: #667eea;
-  border-color: #adc6ff;
+  color: #0d9488;
+  border-color: #99f6e4;
   background: #fff;
 }
 
 .action-btn.detail-btn:active {
-  background: #f0f5ff;
+  background: #f0fdfa;
 }
 
 /* 登录提示 */
@@ -376,7 +376,7 @@ page {
 
 .login-btn {
   padding: 24rpx 80rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
   color: #fff;
   border: none;
   border-radius: 40rpx;
