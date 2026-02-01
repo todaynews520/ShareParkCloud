@@ -1,0 +1,9 @@
+编译 app.json
+miniprogram/app.json: ["tabBar"]["list"][0]["iconPath"]: "images/home.png" 未找到
+["tabBar"]["list"][0]["selectedIconPath"]: "images/home-active.png" 未找到
+["tabBar"]["list"][1]["iconPath"]: "images/publish.png" 未找到
+["tabBar"]["list"][1]["selectedIconPath"]: "images/publish-active.png" 未找到
+["tabBar"]["list"][2]["iconPath"]: "images/personal.png" 未找到
+["tabBar"]["list"][2]["selectedIconPath"]: "images/personal-active.png" 未找到
+编译 app.json
+miniprogram/app.json: tabBar.list 不能为空

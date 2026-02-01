@@ -1,0 +1,149 @@
+<view class="page-wrapper">
+
+  <!-- 头部区域 - 全宽渐变 -->
+  <view class="header-banner" role="banner">
+    <view class="header-inner">
+      <view class="header-text">
+        <text class="main-title">车位浏览</text>
+        <text class="sub-title">发现可用车位</text>
+      </view>
+      <view class="header-icon">🚗</view>
+    </view>
+  </view>
+
+  <!-- 使用提示 - 全宽信息条 -->
+  <view class="tip-bar" role="status">
+    <text class="tip-icon">💡</text>
+    <text class="tip-text">下拉刷新列表，点击卡片<text class="highlight">预约车位</text></text>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="content-wrapper">
+
+    <!-- 标题栏 -->
+    <view class="section-header">
+      <view class="title-group">
+        <view class="section-title">可用车位</view>
+        <view class="count-badge" wx:if="{{parkingList.length > 0}}">{{parkingList.length}}个</view>
+      </view>
+      <view class="filter-tag" bindtap="onFilter" wx:if="{{parkingList.length > 0}}">
+        <text>筛选</text>
+        <text class="arrow">▼</text>
+      </view>
+    </view>
+
+    <!-- 加载状态（首次） -->
+    <view wx:if="{{loading && !parkingList.length}}" class="state-box loading-box">
+      <view class="spinner"></view>
+      <text class="state-text">正在加载车位...</text>
+    </view>
+
+    <!-- 错误状态 -->
+    <view wx:elif="{{error}}" class="state-box error-box" role="alert">
+      <view class="state-icon">⚠️</view>
+      <text class="state-title">加载失败</text>
+      <text class="state-desc">{{error}}</text>
+      <view class="retry-btn" bindtap="onRefresh">重新加载</view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{!parkingList.length && !loading}}" class="state-box empty-box">
+      <view class="empty-visual">
+        <text class="empty-icon">P</text>
+      </view>
+      <text class="state-title">暂无可用车位</text>
+      <text class="state-desc">成为第一个分享车位的业主吧</text>
+    </view>
+
+    <!-- 车位列表 - 全宽卡片 -->
+    <view wx:else class="parking-list">
+      <view
+        wx:for="{{parkingList}}"
+        wx:key="_id"
+        class="parking-card"
+        bindtap="onItemTap"
+        data-id="{{item._id}}"
+        role="button"
+        aria-label="车位{{item.parking_info?.spot_number || '未知'}}，{{item.date}} {{item.start_time}}至{{item.end_time}}"
+      >
+        <!-- 卡片头部 -->
+        <view class="card-header">
+          <view class="spot-info">
+            <text class="spot-number">{{item.parking_info?.spot_number || '未知'}}</text>
+            <text class="spot-label">号车位</text>
+          </view>
+          <view class="status-tag available">
+            <text class="status-dot"></text>
+            <text>可用</text>
+          </view>
+        </view>
+
+        <!-- 卡片内容 -->
+        <view class="card-body">
+          <view class="info-row">
+            <view class="info-cell">
+              <text class="cell-label">📅 日期</text>
+              <text class="cell-value">{{item.date}}</text>
+            </view>
+            <view class="cell-divider"></view>
+            <view class="info-cell">
+              <text class="cell-label">⏰ 时段</text>
+              <text class="cell-value">{{item.start_time}}-{{item.end_time}}</text>
+            </view>
+          </view>
+
+          <!-- 时长信息 -->
+          <view class="duration-info" wx:if="{{item.duration}}">
+            <text class="duration-icon">⏱️</text>
+            <text class="duration-text">时长：{{item.duration}}</text>
+          </view>
+
+          <view class="owner-bar" wx:if="{{item.owner_info}}">
+            <text class="owner-avatar">👤</text>
+            <text class="owner-name">{{item.owner_info.nickname || '业主'}}</text>
+          </view>
+        </view>
+
+        <!-- 卡片底部 -->
+        <view class="card-footer">
+          <text class="action-hint">点击预约</text>
+          <view class="action-btn-icon">
+            <text>→</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{loadingMore}}" class="load-more">
+      <view class="spinner-small"></view>
+      <text>加载更多中...</text>
+    </view>
+
+    <!-- 底部安全区 -->
+    <view class="safe-bottom"></view>
+  </view>
+
+  <!-- 筛选弹窗 -->
+  <view wx:if="{{showFilter}}" class="filter-overlay">
+    <view class="filter-card">
+      <view class="filter-header">
+        <text class="filter-title">筛选日期</text>
+        <view class="filter-close" bindtap="hideFilter">✕</view>
+      </view>
+      <view class="filter-body">
+        <picker mode="date" value="{{filterDate}}" start="{{today}}" bindchange="onFilterDateChange" class="filter-picker">
+          <view class="filter-picker-value">
+            {{filterDate || '请选择日期'}}
+          </view>
+        </picker>
+      </view>
+      <view class="filter-footer">
+        <button class="filter-btn cancel" bindtap="hideFilter">取消</button>
+        <button class="filter-btn confirm" bindtap="onFilterConfirm">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <custom-tab-bar />
+</view>

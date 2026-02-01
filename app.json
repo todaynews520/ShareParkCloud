@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "miniprogram/pages/index/index",
+    "miniprogram/pages/publish/publish",
+    "miniprogram/pages/reserve/reserve",
+    "miniprogram/pages/personal/personal",
+    "miniprogram/pages/login/login"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarTitleText": "共享车位",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f7f8fa"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#667eea",
+    "backgroundColor": "#fff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "miniprogram/pages/index/index",
+        "text": "浏览"
+      },
+      {
+        "pagePath": "miniprogram/pages/publish/publish",
+        "text": "发布"
+      },
+      {
+        "pagePath": "miniprogram/pages/personal/personal",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "miniprogram/sitemap.json"
+}

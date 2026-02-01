@@ -1,0 +1,45 @@
+<view class="login-page">
+  <!-- 头部区域 -->
+  <view class="header">
+    <view class="logo-icon">🚗</view>
+    <view class="title">共享车位</view>
+    <view class="subtitle">分享闲置车位，共创美好小区空间</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="form-container">
+    <!-- 用户信息展示 -->
+    <view class="user-info-card" wx:if="{{userInfo}}">
+      <view class="avatar-wrapper">
+        <image
+          class="avatar"
+          src="{{userInfo.avatarUrl}}"
+          mode="aspectFill"
+        />
+      </view>
+      <view class="user-name">{{userInfo.nickName}}</view>
+      <view class="login-btn" bindtap="onLogin" disabled="{{isLoading}}">
+        {{isLoading ? '登录中...' : '点击登录'}}
+      </view>
+    </view>
+
+    <!-- 未登录状态 -->
+    <view class="user-info-card" wx:else>
+      <view class="avatar-placeholder">👤</view>
+      <view class="user-name">未登录</view>
+      <view class="login-btn" bindtap="onLogin" disabled="{{isLoading}}">
+        {{isLoading ? '登录中...' : '点击登录'}}
+      </view>
+    </view>
+
+    <view class="refresh-tip">
+      <text class="icon">↻</text>
+      <text>下拉刷新</text>
+    </view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tip-box">
+    <text class="tip-text">📌 小提示：登录后即可发布或预约车位</text>
+  </view>
+</view>
