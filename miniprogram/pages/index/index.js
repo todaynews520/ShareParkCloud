@@ -42,6 +42,9 @@ Page({
         selected: 0
       });
     }
+
+    // 刷新车位列表数据
+    this.loadParkingList(true);
   },
 
   /**
@@ -110,10 +113,8 @@ Page({
         .skip((this.data.currentPage - 1) * this.data.pageSize)
         .get();
 
-      // 过滤出当前时间之后的记录
-      const currentParkingList = res.data.filter(item => {
-        return item.start_time >= currentTimeStr;
-      });
+      // 不再进行时间过滤，显示所有可用车位（包括取消预约后恢复的）
+      const currentParkingList = res.data;
 
       // 加载车位信息
       const parkingList = await this.loadParkingInfo(currentParkingList);

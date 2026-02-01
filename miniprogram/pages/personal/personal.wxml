@@ -3,14 +3,28 @@
   <!-- 头部区域 -->
   <view class="header-banner">
     <view class="user-info">
-      <view class="avatar">
-        <text>👤</text>
+      <view class="avatar-wrapper">
+        <image
+          class="avatar"
+          src="{{userInfo && userInfo.avatar_url && userInfo.avatar_url.length > 0 ? userInfo.avatar_url : ''}}"
+          mode="aspectFill"
+          wx:if="{{userInfo && userInfo.avatar_url && userInfo.avatar_url.length > 0}}"
+        />
+        <view class="avatar-placeholder" wx:else>👤</view>
       </view>
       <view class="user-details">
-        <text class="username">{{userInfo?.nickname || '未登录'}}</text>
-        <text class="user-id" wx:if="{{userInfo?.openid}}">{{userInfo.openid.slice(-6)}}</text>
+        <text class="username">{{userInfo && userInfo.nickname ? userInfo.nickname : (isLoggedIn ? '未设置昵称' : '未登录')}}</text>
+        <text class="user-tip" wx:if="{{isLoggedIn && (!userInfo || !userInfo.nickname)}}">点击下方按钮完善资料</text>
       </view>
     </view>
+    <!-- 完善资料按钮 -->
+    <button
+      wx:if="{{isLoggedIn && (!userInfo || !userInfo.nickname)}}"
+      class="complete-profile-btn"
+      bindtap="onCompleteProfile"
+    >
+      去完善
+    </button>
   </view>
 
   <!-- Tab切换 -->
@@ -52,8 +66,8 @@
         class="list-item"
       >
         <view class="item-header">
-          <text class="spot-number">{{item.parking_info?.spot_number || '未知'}}</text>
-          <view class="status-tag" :class="item.status === 'available' ? 'available' : 'reserved'">
+          <text class="spot-number">{{item.parking_id && item.parking_id.spot_number || '未知'}}</text>
+          <view class="status-tag {{item.status === 'available' ? 'available' : 'reserved'}}">
             <text>{{item.status === 'available' ? '可用' : '已预约'}}</text>
           </view>
         </view>
@@ -73,7 +87,7 @@
           </view>
           <view class="item-row">
             <text class="row-label">📅 创建时间</text>
-            <text class="row-value">{{item.create_time}}</text>
+            <text class="row-value">{{formatTimestamp(item.create_time)}}</text>
           </view>
         </view>
       </view>
@@ -96,44 +110,47 @@
       <view
         wx:for="{{myReservations}}"
         wx:key="_id"
-        class="list-item"
+        class="reservation-item-wrapper"
       >
-        <view class="item-header">
-          <text class="spot-number">{{item.spot_number}}</text>
-          <view class="status-tag" :class="getStatusClass(item.status)">
-            <text>{{getStatusText(item.status)}}</text>
+        <view class="list-item">
+          <view class="item-header">
+            <text class="spot-number">{{item.spot_number}}</text>
+            <view class="status-tag {{getStatusClass(item.status)}}">
+              <text>{{getStatusText(item.status)}}</text>
+            </view>
+          </view>
+
+          <view class="item-body">
+            <view class="item-row">
+              <text class="row-label">📅 日期</text>
+              <text class="row-value">{{item.date}}</text>
+            </view>
+            <view class="item-row">
+              <text class="row-label">⏰ 时段</text>
+              <text class="row-value">{{item.start_time}}-{{item.end_time}}</text>
+            </view>
+            <view class="item-row">
+              <text class="row-label">🚗 车牌号</text>
+              <text class="row-value">{{item.plate_number}}</text>
+            </view>
+            <view class="item-row">
+              <text class="row-label">📅 预约时间</text>
+              <text class="row-value">{{formatTimestamp(item.reserve_time)}}</text>
+            </view>
           </view>
         </view>
 
-        <view class="item-body">
-          <view class="item-row">
-            <text class="row-label">📅 日期</text>
-            <text class="row-value">{{item.date}}</text>
-          </view>
-          <view class="item-row">
-            <text class="row-label">⏰ 时段</text>
-            <text class="row-value">{{item.start_time}}-{{item.end_time}}</text>
-          </view>
-          <view class="item-row">
-            <text class="row-label">🚗 车牌号</text>
-            <text class="row-value">{{item.plate_number}}</text>
-          </view>
-          <view class="item-row">
-            <text class="row-label">📅 预约时间</text>
-            <text class="row-value">{{item.reserve_time}}</text>
-          </view>
-        </view>
-
-        <view class="item-footer" wx:if="{{item.status === 'confirmed'}}">
+        <!-- 操作按钮 - 卡片外部 -->
+        <view class="item-actions" wx:if="{{item.status === 'confirmed'}}">
           <button
-            class="cancel-btn"
+            class="action-btn cancel-btn"
             bindtap="onCancelReservation"
             data-id="{{item._id}}"
           >
             取消预约
           </button>
           <button
-            class="detail-btn"
+            class="action-btn detail-btn"
             bindtap="onViewReservation"
             data-id="{{item._id}}"
           >

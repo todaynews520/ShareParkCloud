@@ -73,13 +73,13 @@
           bindchange="onDurationChange"
         >
           <view class="picker-value">
-            {{duration || '请选择时长'}}
+            {{durationTexts[durationIndex] || '请选择时长'}}
           </view>
         </picker>
       </view>
       <view class="time-tip">
         <text class="tip-icon">💡</text>
-        <text>选择时长后自动计算结束时间</text>
+        <text>选择时长自动计算结束时间</text>
       </view>
     </view>
 

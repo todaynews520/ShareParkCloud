@@ -1,0 +1,131 @@
+<view class="page-wrapper">
+
+  <!-- 顶部导航 -->
+  <view class="page-header">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="onBack">
+        <text>←</text>
+      </view>
+      <view class="nav-title">物业管理</view>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-item" bindtap="onFilter">
+      <text class="filter-icon">📅</text>
+      <text class="filter-text">{{filterDate || '全部日期'}}</text>
+      <text class="filter-arrow">▼</text>
+    </view>
+    <view class="filter-stats">
+      <text class="stat-text">总预约: {{totalReservations}}</text>
+      <text class="stat-text">今日: {{todayReservations}}</text>
+    </view>
+  </view>
+
+  <!-- 筛选弹窗 -->
+  <view class="filter-modal" wx:if="{{showFilter}}" catchtap="hideFilter">
+    <view class="filter-modal-content" catchtap="stopPropagation">
+      <view class="filter-modal-header">
+        <text class="modal-title">筛选日期</text>
+        <text class="modal-close" bindtap="hideFilter">×</text>
+      </view>
+      <view class="filter-modal-body">
+        <picker
+          mode="date"
+          value="{{filterDate}}"
+          start="{{currentDate}}"
+          bindchange="onFilterDateChange"
+        >
+          <view class="picker-value">
+            {{filterDate || '请选择日期'}}
+          </view>
+        </picker>
+      </view>
+      <view class="filter-modal-footer">
+        <button class="filter-btn cancel" bindtap="hideFilter">取消</button>
+        <button class="filter-btn confirm" bindtap="onFilterConfirm">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 预约列表 -->
+  <view class="list-container">
+    <view wx:if="{{loading && reservations.length === 0}}" class="loading-container">
+      <view class="spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{reservations.length === 0}}" class="empty-container">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无预约记录</text>
+    </view>
+
+    <view wx:else class="reservation-list">
+      <view
+        wx:for="{{reservations}}"
+        wx:key="_id"
+        class="reservation-item"
+      >
+        <view class="item-header">
+          <text class="spot-number">{{item.spot_number || '未知'}}</text>
+          <view class="status-tag {{getStatusClass(item.status)}}">
+            <text>{{getStatusText(item.status)}}</text>
+          </view>
+        </view>
+
+        <view class="item-body">
+          <view class="item-row">
+            <text class="row-label">📅 日期</text>
+            <text class="row-value">{{item.date}}</text>
+          </view>
+          <view class="item-row">
+            <text class="row-label">⏰ 时段</text>
+            <text class="row-value">{{item.start_time}}-{{item.end_time}}</text>
+          </view>
+          <view class="item-row">
+            <text class="row-label">👤 预约人</text>
+            <text class="row-value">{{item.user_nickname || '未知'}}</text>
+          </view>
+          <view class="item-row">
+            <text class="row-label">🚗 车牌号</text>
+            <text class="row-value">{{item.plate_number}}</text>
+          </view>
+          <view class="item-row">
+            <text class="row-label">📅 预约时间</text>
+            <text class="row-value">{{formatTime(item.reserve_time)}}</text>
+          </view>
+        </view>
+
+        <view class="item-footer">
+          <button
+            class="action-btn cancel"
+            bindtap="onCancelReservation"
+            data-id="{{item._id}}"
+            wx:if="{{item.status === 'confirmed'}}"
+          >
+            取消预约
+          </button>
+          <button
+            class="action-btn detail"
+            bindtap="onViewReservation"
+            data-id="{{item._id}}"
+          >
+            查看详情
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未登录提示 -->
+  <view class="login-prompt" wx:if="{{!isLoggedIn}}">
+    <button class="login-btn" bindtap="onGoLogin">
+      去登录
+    </button>
+  </view>
+
+  <custom-tab-bar />
+
+</view>

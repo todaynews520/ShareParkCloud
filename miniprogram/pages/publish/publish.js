@@ -25,10 +25,22 @@ Page({
     const today = app.getUtils().getCurrentDate();
     const currentTime = app.getUtils().getCurrentTime();
 
+    // 生成1-24小时时长选项
+    const durationOptions = this.generateDurationOptions();
+
+    // 获取当前用户上次使用的车位号
+    const openid = app.globalData.openid || wx.getStorageSync('openid');
+    const lastSpotNumber = wx.getStorageSync(`last_spot_${openid}`);
+
     this.setData({
       today: today,
       date: today, // 默认今天
-      startTime: currentTime // 默认当前时间
+      startTime: currentTime, // 默认当前时间
+      spotNumber: lastSpotNumber || '', // 加载上次使用的车位号
+      durationTexts: durationOptions.displayTexts,
+      durationOptions: durationOptions.options,
+      durationIndex: 0,
+      selectedDuration: { hours: 1, minutes: 0 }
     });
 
     // 自动计算结束时间
@@ -52,6 +64,10 @@ Page({
   onSpotNumberInput(e) {
     const value = e.detail.value.trim();
     this.setData({ spotNumber: value });
+
+    // 保存到本地存储
+    const openid = app.globalData.openid || wx.getStorageSync('openid');
+    wx.setStorageSync(`last_spot_${openid}`, value);
   },
 
   /**
@@ -91,6 +107,7 @@ Page({
     const totalMinutes = this.data.durationOptions[index];
 
     this.setData({
+      durationIndex: index,
       selectedDuration: { hours: 0, minutes: totalMinutes },
       endTime: '' // 清空结束时间
     });
@@ -99,24 +116,14 @@ Page({
   },
 
   /**
-   * 生成时长选项
+   * 生成时长选项 (1-24小时)
    */
   generateDurationOptions() {
     const options = [];
     const displayTexts = [];
 
-    // 5分钟、15分钟、30分钟
-    options.push(5);
-    displayTexts.push('5分钟');
-
-    options.push(15);
-    displayTexts.push('15分钟');
-
-    options.push(30);
-    displayTexts.push('30分钟');
-
-    // 1小时，2小时，...，12小时
-    for (let i = 1; i <= 12; i++) {
+    // 1小时到24小时
+    for (let i = 1; i <= 24; i++) {
       options.push(i * 60);
       displayTexts.push(`${i}小时`);
     }
@@ -175,7 +182,7 @@ Page({
    */
   calculateDurationFromEndTime() {
     if (!this.data.startTime || !this.data.endTime) {
-      this.setData({ duration: '', durationText: '' });
+      this.setData({ duration: '', durationIndex: 0 });
       return;
     }
 
@@ -189,23 +196,20 @@ Page({
 
       const diffMinutes = end - start;
 
-      // 最小时长5分钟
-      if (diffMinutes < 5) {
+      // 最小时长1小时
+      if (diffMinutes < 60) {
         return;
       }
 
-      let durationText = '';
-      if (diffMinutes % 60 === 0) {
-        durationText = `${diffMinutes / 60}小时`;
-      } else {
-        const hours = Math.floor(diffMinutes / 60);
-        const mins = diffMinutes % 60;
-        durationText = `${hours}小时${mins}分钟`;
-      }
+      const hours = Math.floor(diffMinutes / 60);
+
+      // 找到对应的索引
+      const index = this.data.durationOptions.indexOf(hours * 60);
 
       this.setData({
-        duration: durationText,
-        selectedDuration: { hours: Math.floor(diffMinutes / 60), minutes: diffMinutes % 60 }
+        duration: `${hours}小时`,
+        selectedDuration: { hours: hours, minutes: 0 },
+        durationIndex: index >= 0 ? index : 0
       });
     } catch (err) {
       console.error('计算时长失败:', err);
@@ -225,8 +229,8 @@ Page({
       const { hours, minutes } = this.data.selectedDuration;
       const totalMinutes = hours * 60 + minutes;
 
-      // 最小时长5分钟
-      if (totalMinutes < 5) {
+      // 最小时长1小时
+      if (totalMinutes < 60) {
         return;
       }
 
@@ -270,8 +274,8 @@ Page({
       return;
     }
 
-    if (!this.data.duration || this.data.duration.length < 5) {
-      showToast('请选择时长（最小时长5分钟）');
+    if (!this.data.duration || this.data.duration.length < 2) {
+      showToast('请选择时长（最小时长1小时）');
       return;
     }
 
@@ -283,14 +287,7 @@ Page({
       // 获取当前用户信息
       const openid = app.globalData.openid || wx.getStorageSync('openid');
 
-      // 获取用户信息
-      const userRes = await app.getDB().collection('users')
-        .where({ openid: openid })
-        .get();
-
-      const userInfo = userRes.data[0] || { nickname: '业主' };
-
-      // 1. 先创建车位信息到share_park集合
+      // 1. 先创建车位信息到parkings集合
       const parkingsRes = await app.getDB().collection('parkings').add({
         data: {
           spot_number: this.data.spotNumber,
@@ -316,7 +313,14 @@ Page({
         return;
       }
 
-      // 3. 创建发布记录
+      // 3. 获取用户信息
+      const userRes = await app.getDB().collection('users')
+        .where({ openid: openid })
+        .get();
+
+      const userInfo = userRes.data[0] || { nickname: '业主' };
+
+      // 4. 创建发布记录
       await app.getDB().collection('parking_releases').add({
         data: {
           parking_id: {
@@ -338,6 +342,9 @@ Page({
 
       hideLoading();
       showToast('发布成功');
+
+      // 保存车位号到本地存储
+      wx.setStorageSync(`last_spot_${openid}`, this.data.spotNumber);
 
       // 延迟后返回首页
       setTimeout(() => {

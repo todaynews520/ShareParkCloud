@@ -14,7 +14,7 @@
   <!-- 车位信息卡片 -->
   <view class="info-card">
     <view class="card-header">
-      <view class="spot-number">{{releaseInfo.parking_info?.spot_number || '未知'}}</view>
+      <view class="spot-number">{{releaseInfo.parking_info && releaseInfo.parking_info.spot_number || '未知'}}</view>
       <view class="status-tag available">
         <text class="status-dot"></text>
         <text>可用</text>
@@ -40,7 +40,7 @@
         </view>
         <view class="info-item">
           <text class="label">👤 发布者</text>
-          <text class="value">{{releaseInfo.owner_info?.nickname || '业主'}}</text>
+          <text class="value">{{releaseInfo.owner_info && releaseInfo.owner_info.nickname || '业主'}}</text>
         </view>
       </view>
     </view>
@@ -49,31 +49,8 @@
   <!-- 预约表单 -->
   <view class="form-container">
 
-    <!-- 用户角色 -->
-    <view class="form-section">
-      <view class="section-label">您的角色</view>
-      <view class="role-selector">
-        <view
-          class="role-item {{role === 'owner' ? 'active' : ''}}"
-          bindtap="onRoleChange"
-          data-value="owner"
-        >
-          <text class="role-icon">👤</text>
-          <text class="role-text">业主</text>
-        </view>
-        <view
-          class="role-item {{role === 'property' ? 'active' : ''}}"
-          bindtap="onRoleChange"
-          data-value="property"
-        >
-          <text class="role-icon">🏢</text>
-          <text class="role-text">物业</text>
-        </view>
-      </view>
-    </view>
-
     <!-- 车牌号 -->
-    <view class="form-section">
+    <view class="form-section" wx:if="{{role === 'owner'}}">
       <view class="section-label">车牌号</view>
       <view class="input-card">
         <input
@@ -84,12 +61,19 @@
           maxlength="10"
         />
       </view>
-      <view class="input-hint" wx:if="{{role === 'owner'}}">
+      <view class="input-hint">
         <text class="hint-icon">ℹ️</text>
         <text>请填写您的车牌号以便物业放行</text>
       </view>
     </view>
 
+  </view>
+
+  <!-- 订阅消息提示 -->
+  <view class="subscribe-tip" wx:if="{{!hasSubscribed}}">
+    <text class="tip-icon">🔔</text>
+    <text class="tip-text">预约成功后将收到通知提醒</text>
+    <button class="subscribe-btn" bindtap="onSubscribeMessage">允许通知</button>
   </view>
 
   <!-- 提交按钮 -->

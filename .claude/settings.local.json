@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(git config:*)",
+      "Bash(git remote add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n初始提交：共享车位小程序\n\n- 实现车位浏览、发布、预约功能\n- 支持微信登录授权（使用新API）\n- 个人中心管理发布和预约记录\n- 优化UI设计，简洁明了\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(ping:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git add:*)"
     ]
   }
 }

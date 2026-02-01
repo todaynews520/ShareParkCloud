@@ -8,28 +8,59 @@
 
   <!-- 登录表单 -->
   <view class="form-container">
-    <!-- 用户信息展示 -->
-    <view class="user-info-card" wx:if="{{userInfo}}">
-      <view class="avatar-wrapper">
+    <!-- 头像选择 -->
+    <view class="avatar-section">
+      <button
+        class="avatar-btn"
+        open-type="chooseAvatar"
+        bindchooseavatar="onChooseAvatar"
+      >
         <image
-          class="avatar"
-          src="{{userInfo.avatarUrl}}"
+          class="avatar-img"
+          src="{{avatarUrl}}"
           mode="aspectFill"
+          wx:if="{{avatarUrl}}"
         />
-      </view>
-      <view class="user-name">{{userInfo.nickName}}</view>
-      <view class="login-btn" bindtap="onLogin" disabled="{{isLoading}}">
-        {{isLoading ? '登录中...' : '点击登录'}}
-      </view>
+        <view class="avatar-placeholder" wx:else>
+          <text class="placeholder-icon">📷</text>
+          <text class="placeholder-text">点击选择头像</text>
+        </view>
+        <view class="avatar-check" wx:if="{{avatarUrl}}">✓</view>
+      </button>
     </view>
 
-    <!-- 未登录状态 -->
-    <view class="user-info-card" wx:else>
-      <view class="avatar-placeholder">👤</view>
-      <view class="user-name">未登录</view>
-      <view class="login-btn" bindtap="onLogin" disabled="{{isLoading}}">
-        {{isLoading ? '登录中...' : '点击登录'}}
-      </view>
+    <!-- 昵称输入 -->
+    <view class="nickname-section">
+      <view class="input-label">昵称</view>
+      <input
+        type="nickname"
+        class="nickname-input"
+        placeholder="请输入您的昵称"
+        value="{{nickname}}"
+        bindinput="onNicknameInput"
+        maxlength="20"
+      />
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <!-- 登录按钮 -->
+      <button
+        class="login-btn primary"
+        bindtap="onLogin"
+        disabled="{{isLoading || !avatarUrl || !nickname}}"
+      >
+        {{isLoading ? '登录中...' : '登录'}}
+      </button>
+
+      <!-- 稍后填写按钮 -->
+      <button
+        class="login-btn secondary"
+        bindtap="onSkip"
+        disabled="{{isLoading}}"
+      >
+        稍后填写
+      </button>
     </view>
 
     <view class="refresh-tip">
@@ -40,6 +71,6 @@
 
   <!-- 提示信息 -->
   <view class="tip-box">
-    <text class="tip-text">📌 小提示：登录后即可发布或预约车位</text>
+    <text class="tip-text">📌 小提示：完善资料后可以发布或预约车位</text>
   </view>
 </view>

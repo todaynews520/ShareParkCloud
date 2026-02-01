@@ -1,9 +1,16 @@
 编译 app.json
-miniprogram/app.json: ["tabBar"]["list"][0]["iconPath"]: "images/home.png" 未找到
-["tabBar"]["list"][0]["selectedIconPath"]: "images/home-active.png" 未找到
-["tabBar"]["list"][1]["iconPath"]: "images/publish.png" 未找到
-["tabBar"]["list"][1]["selectedIconPath"]: "images/publish-active.png" 未找到
-["tabBar"]["list"][2]["iconPath"]: "images/personal.png" 未找到
-["tabBar"]["list"][2]["selectedIconPath"]: "images/personal-active.png" 未找到
+编译 ext.json
+编译 5 个页面json文件
+miniprogram/pages/index/index.json: ["usingComponents"]["custom-tab-bar"]: "../../components/customTabBar/custom-tab-bar"，在 D:/zpsu/ShareParkCloud/miniprogram/components/customTabBar/custom-tab-bar 路径下未找到组件
 编译 app.json
-miniprogram/app.json: tabBar.list 不能为空
+编译 ext.json
+编译 5 个页面json文件
+miniprogram/pages/index/index.json: ["usingComponents"]["custom-tab-bar"]: "../../components/customTabBar/custom-tab-bar"，在 D:/zpsu/ShareParkCloud/miniprogram/components/customTabBar/custom-tab-bar 路径下未找到组件
+编译 app.json
+编译 ext.json
+编译 5 个页面json文件
+miniprogram/pages/index/index.json: ["usingComponents"]["custom-tab-bar"]: "../../components/customTabBar/custom-tab-bar"，在 D:/zpsu/ShareParkCloud/miniprogram/components/customTabBar/custom-tab-bar 路径下未找到组件
+编译 app.json
+编译 ext.json
+编译 5 个页面json文件
+miniprogram/pages/index/index.json: ["usingComponents"]["custom-tab-bar"]: "../../components/customTabBar/custom-tab-bar"，在 D:/zpsu/ShareParkCloud/miniprogram/components/customTabBar/custom-tab-bar 路径下未找到组件

@@ -1,5 +1,6 @@
-// components/customTabBar/customTabBar.js - 自定义底部导航栏组件
+// components/customTabBar/custom-tab-bar.js - 自定义底部导航栏组件
 Component({
+  name: 'custom-tab-bar',
   /**
    * 组件的属性列表
    */
@@ -47,10 +48,26 @@ Component({
   methods: {
     switchTab(e) {
       const data = e.currentTarget.dataset;
+      const index = data.index;
       const url = data.path;
+
+      // 设置选中的 tab
+      this.setData({
+        selected: index
+      });
 
       wx.switchTab({
         url: url
+      });
+    },
+
+    publish() {
+      // 发布按钮单独处理
+      this.setData({
+        selected: 1
+      });
+      wx.navigateTo({
+        url: '/pages/publish/publish'
       });
     }
   }

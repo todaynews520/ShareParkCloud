@@ -64,12 +64,12 @@
         bindtap="onItemTap"
         data-id="{{item._id}}"
         role="button"
-        aria-label="车位{{item.parking_info?.spot_number || '未知'}}，{{item.date}} {{item.start_time}}至{{item.end_time}}"
+        aria-label="车位{{item.parking_info && item.parking_info.spot_number || '未知'}}，{{item.date}} {{item.start_time}}至{{item.end_time}}"
       >
         <!-- 卡片头部 -->
         <view class="card-header">
           <view class="spot-info">
-            <text class="spot-number">{{item.parking_info?.spot_number || '未知'}}</text>
+            <text class="spot-number">{{item.parking_info && item.parking_info.spot_number || '未知'}}</text>
             <text class="spot-label">号车位</text>
           </view>
           <view class="status-tag available">

@@ -9,8 +9,9 @@ Page({
   data: {
     releaseId: '', // 车位发布ID
     releaseInfo: null, // 车位发布信息
-    plateNumber: '', // 车牌号
     role: 'owner', // owner 或 property
+    plateNumber: '', // 车牌号
+    hasSubscribed: false, // 是否已订阅消息
     submitting: false
   },
 
@@ -23,6 +24,23 @@ Page({
         releaseId: options.id
       });
       this.loadReleaseInfo(options.id);
+    }
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow() {
+    // 确保自定义导航栏的选中状态
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 0
+      });
+    }
+
+    // 检查是否已订阅
+    if (!this.data.hasSubscribed) {
+      this.setData({ hasSubscribed: wx.getStorageSync('reserve_subscribed') || false });
     }
   },
 
@@ -97,6 +115,34 @@ Page({
   },
 
   /**
+   * 订阅消息
+   */
+  async onSubscribeMessage() {
+    try {
+      showLoading('正在请求通知权限...');
+
+      // 订阅模板消息
+      const res = await wx.requestSubscribeMessage({
+        tmplIds: ['YOUR_TEMPLATE_ID'] // 替换为您的模板消息ID
+      });
+
+      hideLoading();
+
+      if (res['YOUR_TEMPLATE_ID'] === 'accept') {
+        wx.setStorageSync('reserve_subscribed', true);
+        this.setData({ hasSubscribed: true });
+        showToast('已开启通知提醒');
+      } else {
+        showToast('取消订阅通知');
+      }
+    } catch (err) {
+      hideLoading();
+      console.error('订阅失败:', err);
+      showToast('订阅失败，请手动授权');
+    }
+  },
+
+  /**
    * 提交预约
    */
   async onSubmit() {
@@ -134,6 +180,7 @@ Page({
 
       const db = app.getDB();
       const openid = app.globalData.openid || wx.getStorageSync('openid');
+      const userInfo = app.globalData.userInfo || {};
 
       // 更新发布状态
       await db.collection('parking_releases')
@@ -150,10 +197,10 @@ Page({
         data: {
           release_id: this.data.releaseId,
           user_id: openid,
-          user_nickname: app.globalData.userInfo?.nickname || '业主',
+          user_nickname: userInfo.nickname || '业主',
           plate_number: this.data.plateNumber,
-          role: this.data.role,
-          spot_number: this.data.releaseInfo.parking_info?.spot_number || '未知',
+          role: this.data.role, // 记录角色
+          spot_number: this.data.releaseInfo.parking_info && this.data.releaseInfo.parking_info.spot_number || '未知',
           date: this.data.releaseInfo.date,
           start_time: this.data.releaseInfo.start_time,
           end_time: this.data.releaseInfo.end_time,
@@ -164,6 +211,15 @@ Page({
 
       // 调用通知函数
       await this.sendPropertyNotification(this.data.releaseInfo);
+
+      // 如果已订阅，发送订阅消息
+      if (this.data.hasSubscribed) {
+        try {
+          await this.sendSubscribeMessage(this.data.releaseInfo);
+        } catch (err) {
+          console.error('发送订阅消息失败:', err);
+        }
+      }
 
       hideLoading();
       showToast('预约成功');
@@ -180,6 +236,36 @@ Page({
       showToast('预约失败，请重试');
     } finally {
       this.setData({ submitting: false });
+    }
+  },
+
+  /**
+   * 发送订阅消息
+   */
+  async sendSubscribeMessage(releaseInfo) {
+    try {
+      const openid = app.globalData.openid || wx.getStorageSync('openid');
+
+      await wx.cloud.sendSubscribeMessage({
+        touser: openid,
+        page: '/pages/reserve/reserve?id=' + this.data.releaseId,
+        data: {
+          thing1: {
+            value: this.data.plateNumber || ''
+          },
+          thing2: {
+            value: releaseInfo.date + ' ' + releaseInfo.start_time + '-' + releaseInfo.end_time
+          },
+          thing3: {
+            value: releaseInfo.parking_info && releaseInfo.parking_info.spot_number || '未知'
+          },
+          thing4: {
+            value: '车位预约成功'
+          }
+        }
+      });
+    } catch (err) {
+      console.error('发送订阅消息失败:', err);
     }
   },
 
@@ -201,7 +287,7 @@ Page({
               reservation_id: this.data.releaseId,
               property_id: user._id,
               property_openid: user.openid,
-              message: `有新预约：车位号${releaseInfo.parking_info?.spot_number || '未知'}，时间段${releaseInfo.date} ${releaseInfo.start_time}-${releaseInfo.end_time}，车牌号${this.data.plateNumber}`,
+              message: `有新预约：车位号${releaseInfo.parking_info && releaseInfo.parking_info.spot_number || '未知'}，时间段${releaseInfo.date} ${releaseInfo.start_time}-${releaseInfo.end_time}，车牌号${this.data.plateNumber}`,
               type: 'property',
               sent_time: new Date().getTime(),
               status: 'pending'

@@ -4,7 +4,8 @@
     "pages/publish/publish",
     "pages/reserve/reserve",
     "pages/personal/personal",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/admin/admin"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -15,7 +16,20 @@
   },
   "tabBar": {
     "custom": true,
-    "list": []
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "车位浏览"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "text": ""
+      },
+      {
+        "pagePath": "pages/personal/personal",
+        "text": "个人中心"
+      }
+    ]
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"
