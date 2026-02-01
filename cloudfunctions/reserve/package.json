@@ -1,9 +1,0 @@
-{
-  "name": "reserve",
-  "version": "1.0.0",
-  "description": "预约车位云函数，使用事务确保数据一致性",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "^3.0.1"
-  }
-}

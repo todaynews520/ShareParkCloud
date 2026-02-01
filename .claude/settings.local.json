@@ -13,7 +13,9 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\n优化UI和修复功能\n\n- 优化个人中心预约记录UI，按钮移到卡片外部\n- 统一状态标签配色方案（蓝/紫/绿/黄/灰）\n- 简化表单样式，优化间距和圆角\n- 修复查询语法问题（使用 db.command.in）\n- 移除发布页面的车牌号输入\n- 更新微信登录授权为最新API\n- 添加自定义tab bar组件\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "mcp__web-search-prime__webSearchPrime",
-      "mcp__zread__read_file"
+      "mcp__zread__read_file",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n重构代码架构和优化预订发布功能\n\n- 新增预订云函数 \\(reserve\\)\n- 新增服务层和工具类 \\(parkingService, cache, errorHandler, validator\\)\n- 重构发布页面，增强表单验证和错误处理\n- 重构预订页面，优化用户体验和交互逻辑\n- 添加环境配置文件统一管理配置\n- 优化首页和样式，提升UI一致性\n- 更新PRD文档\n- 添加示例HTML页面\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n重构小程序：完整实现邻里车位平台\n\n主要变更：\n- 创建完整的项目结构 \\(config/, utils/, styles/, services/, pages/\\)\n- 实现6个核心页面：home, publish, book, entry-pass, profile, success\n- 创建5个云函数：login, publish, book, getQrCode, verify\n- 修复WXML语法问题（移除可选链和模板中的toFixed）\n- 修复发布表单车位号输入问题\n- 修复数据结构不一致问题（字段扁平化）\n- 添加调试日志用于排查数据展示问题\n\n技术特性：\n- Teal色系设计 \\(#0d9488\\)\n- 模拟支付流程\n- JWT动态二维码（30秒刷新）\n- 车牌号验证\n- 本地缓存封装\nEOF\n\\)\")"
     ]
   }
 }

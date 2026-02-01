@@ -1,0 +1,118 @@
+<view class="profile-page">
+  <!-- 用户信息区域 -->
+  <view class="user-section">
+    <view wx:if="{{isLoggedIn}}">
+      <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
+      <text class="user-name">{{userInfo.nickname}}</text>
+      <view class="user-tags">
+        <text class="user-tag">实名认证</text>
+        <text class="user-tag">优质车主</text>
+      </view>
+    </view>
+    <view wx:else class="guest-section">
+      <text class="guest-text">登录后查看更多信息</text>
+      <button class="login-btn" bindtap="onLogin">立即登录</button>
+    </view>
+  </view>
+
+  <!-- 统计数据 -->
+  <view wx:if="{{isLoggedIn}}" class="stats-section">
+    <view class="stat-item">
+      <text class="stat-value">{{stats.publishCount || 0}}</text>
+      <text class="stat-label">发布次数</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">¥{{stats.totalEarningText}}</text>
+      <text class="stat-label">总收益</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.rating || 5.0}}</text>
+      <text class="stat-label">评分</text>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view wx:if="{{isLoggedIn}}" class="content-section">
+    <!-- Tab切换 -->
+    <view class="tab-bar">
+      <view
+        class="tab-item {{activeTab === 'publish' ? 'active' : ''}}"
+        bindtap="onTabChange"
+        data-tab="publish"
+      >
+        <text>我的发布</text>
+        <text class="tab-count">({{publishList.length}})</text>
+      </view>
+      <view
+        class="tab-item {{activeTab === 'order' ? 'active' : ''}}"
+        bindtap="onTabChange"
+        data-tab="order"
+      >
+        <text>我的预约</text>
+        <text class="tab-count">({{orderList.length}})</text>
+      </view>
+    </view>
+
+    <!-- 发布列表 -->
+    <view wx:if="{{activeTab === 'publish'}}">
+      <view wx:if="{{publishList.length === 0}}" class="empty-state">
+        <text class="empty-icon">📝</text>
+        <text class="empty-text">还没有发布任何车位</text>
+      </view>
+
+      <view wx:else>
+        <view
+          wx:for="{{publishList}}"
+          wx:key="_id"
+          class="list-item"
+        >
+          <view class="item-header">
+            <text class="item-title">{{item.spot_number}}号</text>
+            <view class="status-badge {{item.status}}">{{item.status === 'available' ? '进行中' : '已结束'}}</view>
+          </view>
+          <text class="item-time">{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
+          <view class="item-actions" wx:if="{{item.status === 'available'}}">
+            <button class="action-btn cancel" bindtap="onCancelPublish" data-id="{{item._id}}">取消发布</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 预约列表 -->
+    <view wx:if="{{activeTab === 'order'}}">
+      <view wx:if="{{orderList.length === 0}}" class="empty-state">
+        <text class="empty-icon">🎫</text>
+        <text class="empty-text">还没有预约任何车位</text>
+      </view>
+
+      <view wx:else>
+        <view
+          wx:for="{{orderList}}"
+          wx:key="_id"
+          class="list-item"
+        >
+          <view class="item-header">
+            <text class="item-title">{{item.spot_number || '未知'}}号</text>
+            <view class="status-badge {{item.status}}">{{item.status === 'paid' ? '即将开始' : (item.status === 'active' ? '进行中' : '已结束')}}</view>
+          </view>
+          <text class="item-time">{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
+          <text class="item-plate">车牌: {{item.plateNumber}}</text>
+
+          <!-- 入场凭证按钮 -->
+          <view class="item-actions" wx:if="{{item.status === 'paid' || item.status === 'active'}}">
+            <button class="action-btn primary" bindtap="onViewEntryPass" data-id="{{item._id}}">
+              {{item.status === 'paid' ? '查看入场凭证' : '查看停车凭证'}}
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view wx:if="{{isLoggedIn}}" class="logout-section">
+    <button class="logout-btn" bindtap="onLogout">退出登录</button>
+  </view>
+</view>

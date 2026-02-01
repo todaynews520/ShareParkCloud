@@ -1,0 +1,98 @@
+<view class="book-page">
+  <!-- 车位信息卡片 -->
+  <view class="info-card">
+    <view class="card-header">
+      <text class="spot-number">{{spotInfo.spot_number}}号</text>
+      <view class="status-badge">可用</view>
+    </view>
+    <text class="spot-location">{{spotInfo.locationName || '未知位置'}}</text>
+    <view class="spot-price">
+      <text class="price-symbol">¥</text>
+      <text class="price-value">{{spotInfo.priceHourly || 5}}</text>
+      <text class="price-unit">/小时</text>
+    </view>
+  </view>
+
+  <!-- 详情网格 -->
+  <view class="detail-grid">
+    <view class="detail-item">
+      <text class="detail-icon">📅</text>
+      <view class="detail-content">
+        <text class="detail-label">日期</text>
+        <text class="detail-value">{{spotInfo.date}}</text>
+      </view>
+    </view>
+    <view class="detail-item">
+      <text class="detail-icon">⏰</text>
+      <view class="detail-content">
+        <text class="detail-label">时段</text>
+        <text class="detail-value">{{spotInfo.start_time}}-{{spotInfo.end_time}}</text>
+      </view>
+    </view>
+    <view class="detail-item">
+      <text class="detail-icon">⏱️</text>
+      <view class="detail-content">
+        <text class="detail-label">时长</text>
+        <text class="detail-value">{{spotInfo.duration}}小时</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 车牌输入 -->
+  <view class="card">
+    <view class="card-title">车牌号码</view>
+    <input
+      class="plate-input"
+      placeholder="请输入车牌号"
+      value="{{plateNumber}}"
+      bindinput="onPlateInput"
+      maxlength="8"
+      style="text-transform: uppercase;"
+    />
+
+    <view class="plate-actions">
+      <button class="action-btn" bindtap="onNewEnergy">新能源</button>
+    </view>
+
+    <view wx:if="{{plateHistory.length > 0}}" class="plate-history">
+      <text class="history-title">历史车牌</text>
+      <view class="history-list">
+        <view
+          wx:for="{{plateHistory}}"
+          wx:key="*this"
+          class="history-tag"
+          bindtap="onSelectHistory"
+          data-plate="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 费用明细 -->
+  <view class="card">
+    <view class="card-title">费用明细</view>
+    <view class="fee-row">
+      <text class="fee-label">车位费</text>
+      <text class="fee-value">¥{{pricing.baseFeeText}}</text>
+    </view>
+    <view class="fee-row">
+      <text class="fee-label">服务费</text>
+      <text class="fee-value">¥{{pricing.serviceFeeText}}</text>
+    </view>
+    <view class="fee-row total">
+      <text class="fee-label">合计</text>
+      <text class="fee-value total-price">¥{{pricing.totalText}}</text>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="footer">
+    <view class="footer-price">
+      <text class="footer-label">需支付</text>
+      <text class="footer-amount">¥{{pricing.totalText}}</text>
+    </view>
+    <button class="confirm-btn" bindtap="onConfirm">立即预约</button>
+  </view>
+</view>

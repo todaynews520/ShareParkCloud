@@ -1,0 +1,73 @@
+<view class="entry-pass-page">
+  <!-- 状态卡片 -->
+  <view class="status-card" style="background: {{statusColor}};">
+    <view class="status-icon">🎫</view>
+    <text class="status-text">{{statusText}}</text>
+    <text class="valid-time">有效期: {{orderData.timeRange.start}} - {{orderData.timeRange.end}}</text>
+  </view>
+
+  <!-- 二维码区域 -->
+  <view class="qrcode-section">
+    <view wx:if="{{qrCodeUrl}}" class="qrcode-container">
+      <image class="qrcode-image" src="{{qrCodeUrl}}" mode="aspectFit" />
+      <view class="refresh-overlay" wx:if="{{countdown < 10}}">
+        <text class="refresh-icon">🔄</text>
+      </view>
+    </view>
+
+    <view wx:else class="qrcode-placeholder">
+      <text class="placeholder-icon">⏳</text>
+      <text class="placeholder-text">二维码生成中...</text>
+    </view>
+
+    <!-- 倒计时进度条 -->
+    <view class="countdown-bar">
+      <view class="countdown-progress" style="width: {{(countdown / 30) * 100}}%;"></view>
+    </view>
+    <text class="countdown-text">{{countdown}}秒后更新</text>
+
+    <text class="qrcode-tip">请向保安出示，扫码核验</text>
+
+    <!-- 离线验证码 -->
+    <view wx:if="{{staticCode}}" class="static-code">
+      <text class="static-label">离线验证码</text>
+      <text class="static-value">{{staticCode}}</text>
+      <text class="static-tip">如二维码失效，请报此码</text>
+    </view>
+  </view>
+
+  <!-- 车牌信息 -->
+  <view class="plate-info">
+    <text class="plate-icon">🚗</text>
+    <text class="plate-number">{{orderData.plateNumber}}</text>
+  </view>
+
+  <!-- 订单信息 -->
+  <view class="order-info">
+    <view class="info-row">
+      <text class="info-label">车位号</text>
+      <text class="info-value">{{orderData.spotNumber}}号</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">日期</text>
+      <text class="info-value">{{orderData.date}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">时段</text>
+      <text class="info-value">{{orderData.startTime}} - {{orderData.endTime}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <button class="action-btn primary" bindtap="onRefresh">刷新二维码</button>
+    <button class="action-btn" bindtap="onNavigate">导航去车位</button>
+    <button class="action-btn" bindtap="onContact">联系业主</button>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips">
+    <text class="tip-icon">💡</text>
+    <text class="tip-text">提前15分钟可入场，请合理安排时间</text>
+  </view>
+</view>

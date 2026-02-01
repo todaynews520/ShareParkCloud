@@ -1,0 +1,161 @@
+<view class="publish-page">
+  <!-- 头部 -->
+  <view class="header">
+    <text class="header-title">分享我的车位</text>
+    <text class="header-subtitle">让闲置车位帮助邻居，顺便赚取收益</text>
+  </view>
+
+  <!-- 车位号输入 -->
+  <view class="card">
+    <view class="card-title">车位信息</view>
+    <view class="form-item">
+      <text class="label">车位号</text>
+      <input
+        class="input"
+        placeholder="如：A区-056"
+        value="{{form.spotNumber}}"
+        bindinput="onSpotNumberInput"
+        data-field="spotNumber"
+        maxlength="10"
+      />
+    </view>
+  </view>
+
+  <!-- 日期选择 -->
+  <view class="card">
+    <view class="card-title">选择日期</view>
+    <view class="date-list">
+      <view
+        wx:for="{{dates}}"
+        wx:key="dateStr"
+        class="date-item {{selectedDateIndex === index ? 'active' : ''}}"
+        bindtap="onDateSelect"
+        data-index="{{index}}"
+      >
+        <text class="date-weekday">{{item.weekday}}</text>
+        <text class="date-day">{{item.dateStr.slice(5)}}</text>
+        <text wx:if="{{item.isToday}}" class="date-today">今天</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 时间设置 -->
+  <view class="card">
+    <view class="card-title">时间设置</view>
+
+    <view class="form-item">
+      <text class="label">开始时间</text>
+      <text class="time-value">{{form.startHour}}:00</text>
+    </view>
+
+    <slider
+      class="time-slider"
+      min="0"
+      max="23"
+      step="1"
+      value="{{form.startHour}}"
+      bindchange="onTimeChange"
+      activeColor="#0d9488"
+    />
+
+    <view class="form-item">
+      <text class="label">时长</text>
+      <view class="duration-options">
+        <view
+          wx:for="{{durationOptions}}"
+          wx:key="*this"
+          class="duration-btn {{form.duration === item ? 'active' : ''}}"
+          bindtap="onDurationSelect"
+          data-duration="{{item}}"
+        >
+          {{item}}小时
+        </view>
+      </view>
+    </view>
+
+    <view class="time-result">
+      <text class="result-label">结束时间</text>
+      <text class="result-value">{{(form.startHour + form.duration) % 24}}:00</text>
+    </view>
+  </view>
+
+  <!-- 价格设置 -->
+  <view class="card">
+    <view class="card-title">价格设置</view>
+
+    <view class="form-item">
+      <text class="label">建议价</text>
+      <view class="price-suggestions">
+        <view
+          wx:for="{{priceSuggestions}}"
+          wx:key="*this"
+          class="suggest-btn {{form.price === item ? 'active' : ''}}"
+          bindtap="onSuggestPrice"
+          data-price="{{item}}"
+        >
+          ¥{{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">自定义价</text>
+      <view class="price-input-wrap">
+        <text class="price-symbol">¥</text>
+        <input
+          class="price-input"
+          type="digit"
+          value="{{form.price}}"
+          bindinput="onPriceInput"
+        />
+        <text class="price-unit">/小时</text>
+      </view>
+    </view>
+
+    <view class="earning-card">
+      <text class="earning-label">预计收益</text>
+      <text class="earning-value">¥{{estimatedEarningText}}</text>
+      <text class="earning-tip">含服务费</text>
+    </view>
+  </view>
+
+  <!-- 特性选择 -->
+  <view class="card">
+    <view class="card-title">车位特性</view>
+    <view class="features-grid">
+      <view
+        class="feature-item {{form.features.hasCharger ? 'active' : ''}}"
+        bindtap="onFeatureToggle"
+        data-key="hasCharger"
+      >
+        <text class="feature-icon">⚡</text>
+        <text class="feature-label">可充电</text>
+      </view>
+      <view
+        class="feature-item {{form.features.hasMonitor ? 'active' : ''}}"
+        bindtap="onFeatureToggle"
+        data-key="hasMonitor"
+      >
+        <text class="feature-icon">📹</text>
+        <text class="feature-label">有监控</text>
+      </view>
+      <view
+        class="feature-item {{form.features.isIndoor ? 'active' : ''}}"
+        bindtap="onFeatureToggle"
+        data-key="isIndoor"
+      >
+        <text class="feature-icon">🏢</text>
+        <text class="feature-label">室内车位</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="footer">
+    <view class="footer-info">
+      <text class="footer-label">预计收益</text>
+      <text class="footer-price">¥{{estimatedEarningText}}</text>
+    </view>
+    <button class="submit-btn" bindtap="onSubmit">立即发布</button>
+  </view>
+</view>

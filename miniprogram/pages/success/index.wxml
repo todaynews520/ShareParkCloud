@@ -1,0 +1,23 @@
+<view class="success-page">
+  <!-- 成功动画 -->
+  <view class="success-icon">
+    <text class="icon">✓</text>
+  </view>
+
+  <!-- 成功文本 -->
+  <view class="success-text">
+    <text class="title">预约成功！</text>
+    <text class="subtitle">您的车位已预订</text>
+  </view>
+
+  <!-- 倒计时提示 -->
+  <view class="countdown-hint">
+    <text>{{countdown}}秒后自动跳转到入场凭证</text>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <button class="btn primary" bindtap="onViewPass">立即查看凭证</button>
+    <button class="btn" bindtap="onBackHome">返回首页</button>
+  </view>
+</view>

@@ -1,0 +1,269 @@
+/* pages/home/index.wxss */
+@import "../../styles/theme.wxss";
+
+.home-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: 100rpx;
+}
+
+/* 地图视图 */
+.map-hero {
+  position: relative;
+  height: 40vh;
+  min-height: 280px;
+  max-height: 320px;
+  background: linear-gradient(135deg, #ccfbf1 0%, #d1fae5 100%);
+  overflow: hidden;
+}
+
+.map-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(13, 148, 136, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13, 148, 136, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.location-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24rpx;
+  height: 24rpx;
+  background: #3b82f6;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 8rpx rgba(59, 130, 246, 0.3);
+}
+
+.spot-marker {
+  position: absolute;
+  width: 16rpx;
+  height: 16rpx;
+  background: var(--color-accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, -70%); }
+}
+
+.range-selector {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.range-btn {
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  backdrop-filter: blur(10rpx);
+  transition: all 0.2s;
+}
+
+.range-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.search-card {
+  position: absolute;
+  bottom: 24rpx;
+  left: 24rpx;
+  right: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  box-shadow: var(--shadow-lg);
+}
+
+.search-icon {
+  font-size: 32rpx;
+}
+
+.search-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+}
+
+.search-count {
+  font-size: 24rpx;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* 筛选标签栏 */
+.filter-bar {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.filter-tag {
+  padding: 12rpx 24rpx;
+  background: #f5f5f5;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+
+.filter-tag.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* 车位列表 */
+.parking-list {
+  padding: 0 24rpx 24rpx;
+}
+
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 0;
+}
+
+.state-icon {
+  font-size: 96rpx;
+  margin-bottom: 16rpx;
+}
+
+.state-title {
+  font-size: 32rpx;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.state-desc {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+/* 车位卡片 */
+.spot-card {
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 16rpx;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s;
+}
+
+.spot-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+}
+
+.spot-number {
+  font-size: 40rpx;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.spot-price {
+  display: flex;
+  align-items: baseline;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+  color: var(--color-accent);
+}
+
+.price-value {
+  font-size: 40rpx;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.price-unit {
+  font-size: 20rpx;
+  color: var(--color-text-secondary);
+}
+
+.card-body {
+  padding: 24rpx;
+}
+
+.spot-location,
+.spot-time {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+.spot-features {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.feature-tag {
+  padding: 6rpx 12rpx;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: 12rpx;
+  font-size: 22rpx;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-top: 1rpx solid var(--color-border);
+}
+
+.book-hint {
+  font-size: 28rpx;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.book-arrow {
+  font-size: 32rpx;
+  color: var(--color-primary);
+}
+
+/* 加载状态 */
+.load-more,
+.no-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 40rpx 0;
+  color: var(--color-text-secondary);
+  font-size: 26rpx;
+}

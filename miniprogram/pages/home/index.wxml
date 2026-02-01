@@ -1,0 +1,116 @@
+<view class="home-page">
+  <!-- 地图视图区域 -->
+  <view class="map-hero">
+    <view class="map-grid"></view>
+    <view class="location-dot"></view>
+    <view wx:for="{{parkingList}}" wx:key="_id" class="spot-marker" style="top: {{item.top || 50}}%; left: {{item.left || 50}}%;"></view>
+
+    <!-- 范围选择器 -->
+    <view class="range-selector">
+      <view
+        wx:for="{{[500, 1000, 3000]}}"
+        wx:key="*this"
+        wx:for-item="range"
+        wx:for-index="idx"
+        class="range-btn {{range === range ? 'active' : ''}}"
+        bindtap="onRangeChange"
+        data-range="{{range}}"
+        data-text="{{range < 1000 ? range + 'm' : (range/1000) + 'km'}}"
+      >
+        {{range < 1000 ? range + 'm' : (range/1000) + 'km'}}
+      </view>
+    </view>
+
+    <!-- 搜索卡片 -->
+    <view class="search-card">
+      <text class="search-icon">📍</text>
+      <text class="search-text">附近车位</text>
+      <text class="search-count">{{parkingList.length}}个可用</text>
+    </view>
+  </view>
+
+  <!-- 筛选标签栏 -->
+  <view class="filter-bar">
+    <view
+      wx:for="{{filterTags}}"
+      wx:key="key"
+      class="filter-tag {{item.active ? 'active' : ''}}"
+      bindtap="onFilterTap"
+      data-key="{{item.key}}"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <!-- 车位列表 -->
+  <view class="parking-list">
+    <!-- 加载状态 -->
+    <view wx:if="{{loading && parkingList.length === 0}}" class="state-box">
+      <view class="loading"></view>
+      <text class="state-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{!loading && parkingList.length === 0}}" class="state-box">
+      <text class="state-icon">🅿️</text>
+      <text class="state-title">暂无可用车位</text>
+      <text class="state-desc">成为第一个分享车位的业主吧</text>
+    </view>
+
+    <!-- 车位卡片列表 -->
+    <view wx:else>
+      <view
+        wx:for="{{parkingList}}"
+        wx:key="_id"
+        class="spot-card"
+        bindtap="onSpotTap"
+        data-id="{{item._id}}"
+      >
+        <view class="card-header">
+          <view class="spot-info">
+            <text class="spot-number">{{item.spot_number || '未知'}}号</text>
+          </view>
+          <view class="spot-price">
+            <text class="price-symbol">¥</text>
+            <text class="price-value">{{item.priceHourly || 5}}</text>
+            <text class="price-unit">/时</text>
+          </view>
+        </view>
+
+        <view class="card-body">
+          <view class="spot-location">
+            <text class="location-icon">📍</text>
+            <text class="location-text">{{item.locationName || '未知位置'}}</text>
+          </view>
+
+          <view class="spot-time">
+            <text class="time-icon">⏰</text>
+            <text>{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
+          </view>
+
+          <view class="spot-features" wx:if="{{item.features}}">
+            <text wx:if="{{item.features.hasCharger}}" class="feature-tag">⚡ 可充电</text>
+            <text wx:if="{{item.features.hasMonitor}}" class="feature-tag">📹 有监控</text>
+            <text wx:if="{{item.features.isIndoor}}" class="feature-tag">🏢 室内</text>
+          </view>
+        </view>
+
+        <view class="card-footer">
+          <text class="book-hint">点击预约</text>
+          <text class="book-arrow">→</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{loading && parkingList.length > 0}}" class="load-more">
+      <view class="loading"></view>
+      <text>加载更多...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view wx:if="{{!hasMore && parkingList.length > 0}}" class="no-more">
+      <text>没有更多了</text>
+    </view>
+  </view>
+</view>

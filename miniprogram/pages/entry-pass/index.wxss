@@ -1,0 +1,258 @@
+/* pages/entry-pass/index.wxss */
+@import "../../styles/theme.wxss";
+
+.entry-pass-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding: 24rpx;
+  padding-bottom: 200rpx;
+}
+
+/* 状态卡片 */
+.status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 24rpx;
+  background: var(--color-success);
+  border-radius: 24rpx;
+  color: #fff;
+  margin-bottom: 24rpx;
+}
+
+.status-icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.status-text {
+  font-size: 40rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.valid-time {
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+
+/* 二维码区域 */
+.qrcode-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.qrcode-container {
+  position: relative;
+  width: 400rpx;
+  height: 400rpx;
+}
+
+.qrcode-image {
+  width: 100%;
+  height: 100%;
+}
+
+.refresh-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 24rpx;
+}
+
+.refresh-icon {
+  font-size: 64rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.qrcode-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 400rpx;
+  height: 400rpx;
+  justify-content: center;
+  background: var(--color-bg);
+  border-radius: 24rpx;
+}
+
+.placeholder-icon {
+  font-size: 96rpx;
+  margin-bottom: 16rpx;
+}
+
+.placeholder-text {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+.countdown-bar {
+  width: 400rpx;
+  height: 8rpx;
+  background: var(--color-border);
+  border-radius: 4rpx;
+  overflow: hidden;
+  margin: 24rpx 0 12rpx;
+}
+
+.countdown-progress {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 1s linear;
+}
+
+.countdown-text {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.qrcode-tip {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+.static-code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32rpx;
+  padding: 24rpx;
+  background: var(--color-bg);
+  border-radius: 16rpx;
+  width: 400rpx;
+}
+
+.static-label {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.static-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.static-tip {
+  font-size: 22rpx;
+  color: var(--color-text-secondary);
+}
+
+/* 车牌信息 */
+.plate-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.plate-icon {
+  font-size: 36rpx;
+  margin-right: 12rpx;
+}
+
+.plate-number {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 4rpx;
+}
+
+/* 订单信息 */
+.order-info {
+  padding: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--color-border);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.action-btn {
+  padding: 24rpx 16rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  color: var(--color-text-primary);
+  border: none;
+}
+
+.action-btn.primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.action-btn::after {
+  border: none;
+}
+
+/* 提示信息 */
+.tips {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: rgba(13, 148, 136, 0.1);
+  border-radius: 16rpx;
+}
+
+.tip-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}

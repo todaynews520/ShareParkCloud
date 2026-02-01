@@ -1,0 +1,197 @@
+// pages/book/index.js - 预约页
+const parkingService = require('../../services/parkingService.js')
+const orderService = require('../../services/orderService.js')
+const { validatePlateNumber, formatPlateNumber } = require('../../utils/validator.js')
+const { handleError, showLoading, hideLoading } = require('../../utils/errorHandler.js')
+const formatter = require('../../utils/formatter.js')
+const cache = require('../../utils/cache.js')
+
+Page({
+  data: {
+    spotId: '',
+    spotInfo: null,
+    plateNumber: '',
+    plateHistory: [],
+    pricing: {
+      baseFee: 0,
+      serviceFee: 0,
+      total: 0
+    }
+  },
+
+  onLoad(options) {
+    this.spotId = options.spotId
+    this.loadSpotDetail()
+    this.loadPlateHistory()
+  },
+
+  /**
+   * 加载车位详情
+   */
+  async loadSpotDetail() {
+    showLoading('加载中...')
+
+    try {
+      const res = await parkingService.getParkingDetail(this.spotId)
+      const spotInfo = res.data
+
+      // 计算费用
+      const pricing = orderService.calculatePrice(
+        spotInfo.price.hourly,
+        spotInfo.duration
+      )
+
+      // 处理数据供 WXML 使用
+      const processedSpotInfo = {
+        ...spotInfo,
+        locationName: spotInfo.location && spotInfo.location.name ? spotInfo.location.name : '未知位置',
+        priceHourly: (spotInfo.price && spotInfo.price.hourly) ? (spotInfo.price.hourly / 100) : 5
+      }
+
+      // 格式化价格显示
+      const pricingText = {
+        baseFee: pricing.baseFee,
+        serviceFee: pricing.serviceFee,
+        total: pricing.total,
+        baseFeeText: (pricing.baseFee / 100).toFixed(2),
+        serviceFeeText: (pricing.serviceFee / 100).toFixed(2),
+        totalText: (pricing.total / 100).toFixed(2)
+      }
+
+      this.setData({
+        spotInfo: processedSpotInfo,
+        pricing: pricingText
+      })
+    } catch (err) {
+      handleError(err, '加载失败')
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
+    } finally {
+      hideLoading()
+    }
+  },
+
+  /**
+   * 加载车牌历史
+   */
+  loadPlateHistory() {
+    const history = cache.get('plateHistory') || []
+    this.setData({ plateHistory: history })
+  },
+
+  /**
+   * 车牌号输入
+   */
+  onPlateInput(e) {
+    this.setData({
+      plateNumber: e.detail.value.toUpperCase()
+    })
+  },
+
+  /**
+   * 选择历史车牌
+   */
+  onSelectHistory(e) {
+    const plate = e.currentTarget.dataset.plate
+    this.setData({ plateNumber: plate })
+  },
+
+  /**
+   * 新能源车牌
+   */
+  onNewEnergy() {
+    this.setData({ plateNumber: '新能源' })
+  },
+
+  /**
+   * 确认预约
+   */
+  async onConfirm() {
+    const app = getApp()
+
+    // 检查登录
+    if (!app.globalData.isLoggedIn) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录',
+        success: (res) => {
+          if (res.confirm) {
+            app.login().then(() => {
+              this.onConfirm()
+            })
+          }
+        }
+      })
+      return
+    }
+
+    const { spotInfo, plateNumber, pricing } = this.data
+
+    // 验证车牌
+    const plateCheck = validatePlateNumber(plateNumber)
+    if (!plateCheck.valid) {
+      wx.showToast({ title: plateCheck.message, icon: 'none' })
+      return
+    }
+
+    // 确认弹窗
+    const confirmed = await wx.showModal({
+      title: '确认预约',
+      content: `预约车位：${spotInfo.spot_number}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：¥${pricing.totalText}`
+    })
+
+    if (!confirmed.confirm) return
+
+    showLoading('创建订单...')
+
+    try {
+      // 创建订单
+      const orderRes = await orderService.createOrder({
+        spotId: this.spotId,
+        plateNumber: plateCheck.normalized,
+        timeRange: {
+          start: `${spotInfo.date} ${spotInfo.start_time}`,
+          end: `${spotInfo.date} ${spotInfo.end_time}`
+        },
+        pricing
+      })
+
+      const orderId = orderRes.orderId
+
+      // 模拟支付
+      await orderService.payOrder(orderId)
+
+      // 保存车牌到历史
+      this.savePlateHistory(plateCheck.normalized)
+
+      // 跳转到入场凭证页
+      wx.redirectTo({
+        url: `/pages/entry-pass/index?orderId=${orderId}`
+      })
+
+    } catch (err) {
+      hideLoading()
+      handleError(err, '预约失败')
+    }
+  },
+
+  /**
+   * 保存车牌历史
+   */
+  savePlateHistory(plate) {
+    let history = this.data.plateHistory || []
+
+    // 去重
+    history = history.filter(p => p !== plate)
+
+    // 添加到前面
+    history.unshift(plate)
+
+    // 最多保存5个
+    history = history.slice(0, 5)
+
+    this.setData({ plateHistory: history })
+    cache.set('plateHistory', history)
+  }
+})
