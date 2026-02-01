@@ -15,7 +15,9 @@ Page({
     loadingMore: false, // 加载更多状态
     hasMore: true, // 是否还有更多数据
     currentPage: 1, // 当前页码
-    pageSize: 10 // 每页数量
+    pageSize: 10, // 每页数量
+    showFavoritesOnly: false, // 只显示收藏
+    favoriteParkingIds: [] // 收藏的车位ID列表
   },
 
   /**
@@ -42,6 +44,9 @@ Page({
         selected: 0
       });
     }
+
+    // 加载收藏状态
+    this.loadFavorites();
 
     // 刷新车位列表数据
     this.loadParkingList(true);
@@ -173,12 +178,16 @@ Page({
           item.owner_info = userRes.data[0] || {};
         }
 
+        // 设置收藏状态
+        item.isFavorite = this.data.favoriteParkingIds.includes(item._id);
+
         newParkingList.push(item);
       } catch (err) {
         console.error('加载车位信息失败:', err);
         // 失败时使用默认信息
         item.parking_info = { spot_number: '未知' };
         item.owner_info = { nickname: '业主' };
+        item.isFavorite = false;
         newParkingList.push(item);
       }
     }
@@ -248,5 +257,102 @@ Page({
         func.apply(this, args);
       }, wait);
     };
+  },
+
+  /**
+   * 加载用户收藏的车位列表
+   */
+  async loadFavorites() {
+    try {
+      const openid = app.globalData.openid || wx.getStorageSync('openid');
+      const db = app.getDB();
+
+      const res = await db.collection('favorites')
+        .where({ user_id: openid })
+        .get();
+
+      const favoriteIds = res.data.map(item => item.parking_id);
+      this.setData({ favoriteParkingIds: favoriteIds });
+
+      // 更新列表中的收藏状态
+      const updatedList = this.data.parkingList.map(item => ({
+        ...item,
+        isFavorite: favoriteIds.includes(item._id)
+      }));
+      this.setData({ parkingList: updatedList });
+    } catch (err) {
+      console.error('加载收藏失败:', err);
+    }
+  },
+
+  /**
+   * 切换收藏状态
+   */
+  async onToggleFavorite(e) {
+    e.stopPropagation(); // 阻止事件冒泡
+    const id = e.currentTarget.dataset.id;
+    const index = e.currentTarget.dataset.index;
+
+    const isOpenFavorite = !this.data.parkingList[index].isFavorite;
+    const openid = app.globalData.openid || wx.getStorageSync('openid');
+    const db = app.getDB();
+
+    try {
+      if (isOpenFavorite) {
+        // 添加收藏
+        await db.collection('favorites').add({
+          data: {
+            user_id: openid,
+            parking_id: id,
+            create_time: new Date().getTime()
+          }
+        });
+        showToast('已收藏');
+      } else {
+        // 取消收藏
+        const res = await db.collection('favorites')
+          .where({ user_id: openid, parking_id: id })
+          .get();
+
+        if (res.data.length > 0) {
+          await db.collection('favorites').doc(res.data[0]._id).remove();
+        }
+        showToast('已取消收藏');
+      }
+
+      // 更新本地状态
+      const updatedList = [...this.data.parkingList];
+      updatedList[index].isFavorite = isOpenFavorite;
+      this.setData({ parkingList: updatedList });
+
+      // 更新收藏ID列表
+      if (isOpenFavorite) {
+        this.setData({ favoriteParkingIds: [...this.data.favoriteParkingIds, id] });
+      } else {
+        this.setData({
+          favoriteParkingIds: this.data.favoriteParkingIds.filter(fid => fid !== id)
+        });
+      }
+    } catch (err) {
+      console.error('操作收藏失败:', err);
+      showToast('操作失败');
+    }
+  },
+
+  /**
+   * 切换只显示收藏
+   */
+  onToggleShowFavorites() {
+    const newValue = !this.data.showFavoritesOnly;
+    this.setData({ showFavoritesOnly: newValue });
+
+    if (newValue) {
+      // 过滤只显示收藏的
+      const filteredList = this.data.parkingList.filter(item => item.isFavorite);
+      this.setData({ parkingList: filteredList });
+    } else {
+      // 重新加载全部
+      this.loadParkingList(true);
+    }
   }
 });

@@ -23,12 +23,18 @@
     <!-- 标题栏 -->
     <view class="section-header">
       <view class="title-group">
-        <view class="section-title">可用车位</view>
+        <view class="section-title">{{showFavoritesOnly ? '我的收藏' : '可用车位'}}</view>
         <view class="count-badge" wx:if="{{parkingList.length > 0}}">{{parkingList.length}}个</view>
       </view>
-      <view class="filter-tag" bindtap="onFilter" wx:if="{{parkingList.length > 0}}">
-        <text>筛选</text>
-        <text class="arrow">▼</text>
+      <view class="header-actions">
+        <view class="action-tag favorite {{showFavoritesOnly ? 'active' : ''}}" bindtap="onToggleShowFavorites" wx:if="{{parkingList.length > 0}}">
+          <text class="heart-icon">{{showFavoritesOnly ? '❤️' : '🤍'}}</text>
+          <text class="action-text">收藏</text>
+        </view>
+        <view class="action-tag filter" bindtap="onFilter" wx:if="{{parkingList.length > 0}}">
+          <text>筛选</text>
+          <text class="arrow">▼</text>
+        </view>
       </view>
     </view>
 
@@ -72,9 +78,17 @@
             <text class="spot-number">{{item.parking_info && item.parking_info.spot_number || '未知'}}</text>
             <text class="spot-label">号车位</text>
           </view>
-          <view class="status-tag available">
-            <text class="status-dot"></text>
-            <text>可用</text>
+          <view class="header-right">
+            <view class="status-tag available">
+              <text class="status-dot"></text>
+              <text>可用</text>
+            </view>
+            <view class="favorite-btn {{item.isFavorite ? 'active' : ''}}"
+                  bindtap="onToggleFavorite"
+                  data-id="{{item._id}}"
+                  data-index="{{index}}">
+              <text>{{item.isFavorite ? '❤️' : '🤍'}}</text>
+            </view>
           </view>
         </view>
 

@@ -25,28 +25,66 @@
 3. **车位浏览**
    - 查看可用车位列表
    - 按日期筛选
-   - 只显示当前时间之后的车位
+   - 收藏功能
+   - 懒加载图片优化
 
 4. **车位预约**
    - 查看车位详情
    - 填写车牌号
    - 角色选择
+   - 订阅消息通知
    - 自动通知物业
 
 5. **个人中心**
    - 我的发布
    - 我的预约
    - 取消预约
+   - 车牌号脱敏显示
+
+6. **小区管理**（新增）
+   - 多小区支持
+   - 切换当前小区
+   - 添加/删除小区
+
+### 新增功能
+
+1. **车牌号加密存储**
+   - 服务端AES-256加密
+   - 小程序端脱敏显示
+   - 加密/解密云函数
+
+2. **订阅消息推送**
+   - 预约成功通知
+   - 预约取消通知
+   - 物业管理通知
+
+3. **车位收藏功能**
+   - 收藏/取消收藏车位
+   - 只看收藏筛选
+   - 收藏状态持久化
+
+4. **图片加载优化**
+   - 懒加载组件
+   - 占位符动画
+   - 加载失败处理
+
+5. **车位评价功能**
+   - 星级评分组件
+   - 支持半星评分
+   - 只读/可编辑模式
 
 ## 数据库集合
 
 | 集合名称 | 说明 | 字段 |
 |---------|------|------|
-| users | 用户信息 | _id, openid, role, nickname |
-| parkings | 车位信息 | _id, spot_number, owner_id |
+| users | 用户信息 | _id, openid, role, nickname, avatar_url |
+| parkings | 车位信息 | _id, spot_number, owner_id, community_id |
 | parking_releases | 车位发布 | _id, parking_id, owner_id, date, start_time, end_time, status, duration |
 | reservations | 预约记录 | _id, release_id, user_id, plate_number, spot_number, date, start_time, end_time, status, reserve_time |
 | notifications | 通知记录 | _id, reservation_id, property_id, message, type, sent_time, status |
+| favorites | 收藏记录 | _id, user_id, parking_id, create_time |
+| communities | 小区信息 | _id, name, address, creator_id, create_time |
+| ratings | 评价记录 | _id, parking_id, user_id, rating, comment, create_time |
 
 ## 云开发配置
 
@@ -105,15 +143,23 @@ miniprogram/
 │   ├── publish/        # 车位发布
 │   ├── reserve/        # 车位预约
 │   ├── personal/       # 个人中心
-│   └── login/          # 登录
+│   ├── login/          # 登录
+│   ├── admin/          # 管理后台
+│   └── community/      # 小区管理
 ├── components/         # 组件目录
-│   └── customTabBar/   # 自定义底部导航栏
+│   ├── customTabBar/   # 自定义底部导航栏
+│   ├── lazy-image/     # 懒加载图片组件
+│   └── rating-star/    # 星级评分组件
 ├── utils/              # 工具类
-│   └── common.js       # 通用工具函数
+│   ├── common.js       # 通用工具函数
+│   └── crypto.js       # 加密工具
+├── config/             # 配置文件
+│   └── template.js     # 订阅消息模板配置
 ├── images/             # 图片资源
 └── cloudfunctions/     # 云函数
     ├── login/          # 登录云函数
-    └── notify/         # 通知云函数
+    ├── notify/         # 订阅消息云函数
+    └── crypto/         # 加密解密云函数
 ```
 
 ## 数据流程
@@ -146,9 +192,18 @@ miniprogram/
 
 ## 后续优化
 
-- [ ] 车牌号加密存储
-- [ ] 实现消息模板推送
-- [ ] 添加车位收藏功能
-- [ ] 优化图片加载
-- [ ] 添加车位评价功能
-- [ ] 支持多小区
+- [x] 车牌号加密存储 - 已实现AES-256加密服务端存储，小程序端脱敏显示
+- [x] 实现消息模板推送 - 已实现订阅消息功能，支持预约成功/取消通知
+- [x] 添加车位收藏功能 - 已实现车位收藏、只看收藏筛选功能
+- [x] 优化图片加载 - 已实现懒加载组件，支持占位符和加载状态
+- [x] 添加车位评价功能 - 已实现星级评分组件，支持半星和只读模式
+- [x] 支持多小区 - 已实现小区管理页面，支持多小区切换
+
+## 未来计划
+
+- [ ] 添加车位预约历史记录
+- [ ] 实现车位分享功能
+- [ ] 添加车位推荐算法
+- [ ] 支持车位预约排队
+- [ ] 添加数据统计分析
+- [ ] 实现车位信用评价体系
