@@ -184,6 +184,66 @@ describe('Parking Service', () => {
       await expect(parkingService.createPublish(publishData))
         .rejects.toThrow('时间冲突')
     })
+
+    test('应该拒绝重复发布（相同车位号、日期、时间段）', async () => {
+      const mockResult = {
+        success: false,
+        message: '该车位在此时间段已被发布，请选择其他时间'
+      }
+
+      wx.cloud.callFunction.mockResolvedValue({ result: mockResult })
+
+      const publishData = {
+        spotNumber: 'A001',
+        date: '2024-01-15',
+        startTime: '10:00',
+        endTime: '12:00'
+      }
+
+      await expect(parkingService.createPublish(publishData))
+        .rejects.toThrow('该车位在此时间段已被发布，请选择其他时间')
+    })
+
+    test('应该允许不同时间段的发布', async () => {
+      const mockResult = {
+        success: true,
+        publishId: 'pub-124',
+        message: '发布成功'
+      }
+
+      wx.cloud.callFunction.mockResolvedValue({ result: mockResult })
+
+      const publishData = {
+        spotNumber: 'A001',
+        date: '2024-01-15',
+        startTime: '14:00',
+        endTime: '16:00'
+      }
+
+      const result = await parkingService.createPublish(publishData)
+
+      expect(result.publishId).toBe('pub-124')
+    })
+
+    test('应该检测时间重叠（部分重叠）', async () => {
+      const mockResult = {
+        success: false,
+        message: '该车位在此时间段已被发布，请选择其他时间'
+      }
+
+      wx.cloud.callFunction.mockResolvedValue({ result: mockResult })
+
+      // 11:00-13:00 与 10:00-12:00 有重叠
+      const publishData = {
+        spotNumber: 'A001',
+        date: '2024-01-15',
+        startTime: '11:00',
+        endTime: '13:00'
+      }
+
+      await expect(parkingService.createPublish(publishData))
+        .rejects.toThrow('该车位在此时间段已被发布，请选择其他时间')
+    })
   })
 
   describe('getMyPublishList() - 获取我的发布列表', () => {

@@ -18,7 +18,8 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\n重构小程序：完整实现邻里车位平台\n\n主要变更：\n- 创建完整的项目结构 \\(config/, utils/, styles/, services/, pages/\\)\n- 实现6个核心页面：home, publish, book, entry-pass, profile, success\n- 创建5个云函数：login, publish, book, getQrCode, verify\n- 修复WXML语法问题（移除可选链和模板中的toFixed）\n- 修复发布表单车位号输入问题\n- 修复数据结构不一致问题（字段扁平化）\n- 添加调试日志用于排查数据展示问题\n\n技术特性：\n- Teal色系设计 \\(#0d9488\\)\n- 模拟支付流程\n- JWT动态二维码（30秒刷新）\n- 车牌号验证\n- 本地缓存封装\nEOF\n\\)\")",
       "Bash(npm test)",
       "Bash(npm install:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

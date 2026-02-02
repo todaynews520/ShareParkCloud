@@ -180,7 +180,7 @@ describe('Order Service', () => {
   })
 
   describe('getOrderDetail() - 获取订单详情', () => {
-    test('应该成功获取订单详情', async () => {
+    test('应该成功获取订单详情（驼峰命名）', async () => {
       const mockData = {
         _id: 'order-123',
         spotNumber: 'A001',
@@ -199,6 +199,38 @@ describe('Order Service', () => {
       const result = await orderService.getOrderDetail('order-123')
 
       expect(result.data).toEqual(mockData)
+    })
+
+    test('应该成功获取订单详情（蛇形命名）', async () => {
+      // 数据库使用蛇形命名
+      const mockData = {
+        _id: 'order-123',
+        spot_number: 'A001',
+        date: '2024-01-15',
+        start_time: '10:00',
+        end_time: '12:00',
+        status: 'paid',
+        plateNumber: '京A12345',
+        timeRange: {
+          start: '2024-01-15 10:00',
+          end: '2024-01-15 12:00'
+        }
+      }
+
+      mockApp.getDB.mockReturnValue({
+        collection: jest.fn().mockReturnValue({
+          doc: jest.fn().mockReturnValue({
+            get: jest.fn().mockResolvedValue({ data: mockData })
+          })
+        })
+      })
+
+      const result = await orderService.getOrderDetail('order-123')
+
+      expect(result.data).toEqual(mockData)
+      expect(result.data.spot_number).toBe('A001')
+      expect(result.data.start_time).toBe('10:00')
+      expect(result.data.end_time).toBe('12:00')
     })
 
     test('应该处理不存在的订单', async () => {
