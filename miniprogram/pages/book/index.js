@@ -20,7 +20,21 @@ Page({
   },
 
   onLoad(options) {
+    console.log('预约页面接收到的参数:', options)
     this.spotId = options.spotId
+
+    if (!this.spotId) {
+      wx.showModal({
+        title: '提示',
+        content: '缺少车位ID参数',
+        showCancel: false,
+        success: () => {
+          wx.navigateBack()
+        }
+      })
+      return
+    }
+
     this.loadSpotDetail()
     this.loadPlateHistory()
   },
@@ -29,10 +43,13 @@ Page({
    * 加载车位详情
    */
   async loadSpotDetail() {
+    console.log('开始加载车位详情，ID:', this.spotId)
     showLoading('加载中...')
 
     try {
       const res = await parkingService.getParkingDetail(this.spotId)
+      console.log('获取到的车位详情:', res)
+
       const spotInfo = res.data
 
       // 计算费用
@@ -47,6 +64,8 @@ Page({
         locationName: spotInfo.location && spotInfo.location.name ? spotInfo.location.name : '未知位置',
         priceHourly: (spotInfo.price && spotInfo.price.hourly) ? (spotInfo.price.hourly / 100) : 5
       }
+
+      console.log('处理后的车位信息:', processedSpotInfo)
 
       // 格式化价格显示
       const pricingText = {
@@ -63,6 +82,7 @@ Page({
         pricing: pricingText
       })
     } catch (err) {
+      console.error('加载车位详情失败:', err)
       handleError(err, '加载失败')
       setTimeout(() => {
         wx.navigateBack()

@@ -68,6 +68,8 @@ Page({
       })
 
       const newList = res.data || []
+      console.log('加载到的车位数据:', newList)
+
       // 处理数据，提取嵌套属性
       const processedList = newList.map(item => ({
         ...item,
@@ -77,11 +79,14 @@ Page({
 
       const parkingList = refresh ? processedList : [...this.data.parkingList, ...processedList]
 
+      console.log('处理后的车位列表:', parkingList)
+
       this.setData({
         parkingList,
         hasMore: newList.length >= 20
       })
     } catch (err) {
+      console.error('加载车位列表失败:', err)
       handleError(err, '加载失败')
     } finally {
       this.setData({ loading: false })
@@ -123,8 +128,26 @@ Page({
    */
   onSpotTap(e) {
     const spotId = e.currentTarget.dataset.id
+    console.log('点击车位卡片，ID:', spotId)
+    console.log('完整 dataset:', e.currentTarget.dataset)
+
+    if (!spotId) {
+      wx.showToast({
+        title: '车位ID缺失，无法预约',
+        icon: 'none'
+      })
+      return
+    }
+
     wx.navigateTo({
-      url: `/pages/book/index?spotId=${spotId}`
+      url: `/pages/book/index?spotId=${spotId}`,
+      fail: (err) => {
+        console.error('页面跳转失败:', err)
+        wx.showToast({
+          title: '跳转失败，请重试',
+          icon: 'none'
+        })
+      }
     })
   }
 })
