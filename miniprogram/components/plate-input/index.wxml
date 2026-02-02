@@ -1,0 +1,181 @@
+<!-- components/plate-input/index.wxml -->
+<view class="plate-input-container">
+  <!-- 车牌输入区域 -->
+  <view class="plate-section">
+    <view class="section-title">车牌号</view>
+
+    <!-- 分段输入框 -->
+    <view class="plate-boxes">
+      <!-- 第1位：省份 -->
+      <view
+        class="plate-box {{currentIndex === 0 ? 'active' : ''}} {{segments[0] ? 'filled' : ''}}"
+        bindtap="onBoxTap"
+        data-index="0"
+      >
+        <text class="box-text">{{segments[0] || ''}}</text>
+      </view>
+
+      <!-- 间隔点 -->
+      <view class="plate-dot"></view>
+
+      <!-- 第2位：字母 -->
+      <view
+        class="plate-box {{currentIndex === 1 ? 'active' : ''}} {{segments[1] ? 'filled' : ''}}"
+        bindtap="onBoxTap"
+        data-index="1"
+      >
+        <text class="box-text">{{segments[1] || ''}}</text>
+      </view>
+
+      <!-- 第3-7位：字母数字混合 -->
+      <view
+        wx:for="{{[2,3,4,5,6]}}"
+        wx:key="*this"
+        class="plate-box {{currentIndex === item ? 'active' : ''}} {{segments[item] ? 'filled' : ''}}"
+        bindtap="onBoxTap"
+        data-index="{{item}}"
+      >
+        <text class="box-text">{{segments[item] || ''}}</text>
+      </view>
+
+      <!-- 第8位：新能源可选 -->
+      <view
+        class="plate-box {{isNewEnergy ? 'enabled' : 'disabled'}} {{currentIndex === 7 ? 'active' : ''}} {{segments[7] ? 'filled' : ''}}"
+        bindtap="onBoxTap"
+        data-index="7"
+      >
+        <text class="box-text">{{isNewEnergy ? (segments[7] || '') : '+'}}</text>
+      </view>
+    </view>
+
+    <!-- 新能源切换按钮 -->
+    <view class="plate-toggle">
+      <view
+        class="toggle-btn {{isNewEnergy ? 'active' : ''}}"
+        bindtap="onToggleNewEnergy"
+      >
+        <text class="toggle-icon">⚡</text>
+        <text class="toggle-text">新能源</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史车牌 -->
+  <view wx:if="{{plateHistory.length > 0}}" class="plate-history">
+    <text class="history-title">历史车牌</text>
+    <scroll-view class="history-scroll" scroll-x>
+      <view class="history-list">
+        <view
+          wx:for="{{plateHistory}}"
+          wx:key="*this"
+          class="history-tag"
+          bindtap="onSelectHistory"
+          data-plate="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 自定义键盘 -->
+  <view wx:if="{{showKeyboard}}" class="keyboard-container">
+    <!-- 省份键盘 -->
+    <view wx:if="{{keyboardType === 'province'}}" class="keyboard province-keyboard">
+      <view class="keyboard-row">
+        <view
+          wx:for="{{provinceRows[0]}}"
+          wx:key="*this"
+          class="key-btn"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view
+          wx:for="{{provinceRows[1]}}"
+          wx:key="*this"
+          class="key-btn"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view
+          wx:for="{{provinceRows[2]}}"
+          wx:key="*this"
+          class="key-btn"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view class="key-btn key-btn-delete" bindtap="onDelete">
+          <text class="delete-icon">⌫</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 字母数字键盘 -->
+    <view wx:if="{{keyboardType === 'alphanumeric'}}" class="keyboard alphanumeric-keyboard">
+      <!-- 数字行 -->
+      <view class="keyboard-row">
+        <view
+          wx:for="{{numberKeys}}"
+          wx:key="*this"
+          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+        <view class="key-btn key-btn-delete" bindtap="onDelete">
+          <text class="delete-icon">⌫</text>
+        </view>
+      </view>
+
+      <!-- 字母行 -->
+      <view class="keyboard-row">
+        <view
+          wx:for="{{letterRow1}}"
+          wx:key="*this"
+          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+
+      <view class="keyboard-row">
+        <view
+          wx:for="{{letterRow2}}"
+          wx:key="*this"
+          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+
+      <view class="keyboard-row">
+        <view
+          wx:for="{{letterRow3}}"
+          wx:key="*this"
+          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

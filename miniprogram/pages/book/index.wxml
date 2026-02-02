@@ -39,36 +39,11 @@
   </view>
 
   <!-- 车牌输入 -->
-  <view class="card">
-    <view class="card-title">车牌号码</view>
-    <input
-      class="plate-input"
-      placeholder="请输入车牌号"
-      value="{{plateNumber}}"
-      bindinput="onPlateInput"
-      maxlength="8"
-      style="text-transform: uppercase;"
-    />
-
-    <view class="plate-actions">
-      <button class="action-btn" bindtap="onNewEnergy">新能源</button>
-    </view>
-
-    <view wx:if="{{plateHistory.length > 0}}" class="plate-history">
-      <text class="history-title">历史车牌</text>
-      <view class="history-list">
-        <view
-          wx:for="{{plateHistory}}"
-          wx:key="*this"
-          class="history-tag"
-          bindtap="onSelectHistory"
-          data-plate="{{item}}"
-        >
-          {{item}}
-        </view>
-      </view>
-    </view>
-  </view>
+  <plate-input
+    value="{{plateNumber}}"
+    bind:input="onPlateInput"
+    bind:complete="onPlateComplete"
+  />
 
   <!-- 费用明细 -->
   <view class="card">

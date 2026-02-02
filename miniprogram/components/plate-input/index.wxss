@@ -1,0 +1,262 @@
+/* components/plate-input/index.wxss */
+
+@import "../../styles/theme.wxss";
+
+.plate-input-container {
+  width: 100%;
+  padding: 24rpx 0;
+}
+
+/* 车牌输入区域 */
+.plate-section {
+  width: 100%;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+/* 分段输入框 */
+.plate-boxes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  padding: 16rpx 0;
+}
+
+.plate-box {
+  width: 80rpx;
+  height: 88rpx;
+  background: var(--color-bg);
+  border: 2rpx solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.plate-box.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4rpx var(--color-primary-light);
+}
+
+.plate-box.filled {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.plate-box.filled .box-text {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.plate-box.disabled {
+  opacity: 0.5;
+  background: #f5f5f5;
+}
+
+.plate-box.enabled {
+  border-style: dashed;
+}
+
+.box-text {
+  font-size: 32rpx;
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+}
+
+/* 间隔点 */
+.plate-dot {
+  width: 8rpx;
+  height: 8rpx;
+  background: var(--color-text-tertiary);
+  border-radius: 50%;
+  margin: 0 8rpx;
+}
+
+/* 新能源切换按钮 */
+.plate-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16rpx;
+  padding: 0 8rpx;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  background: var(--color-bg);
+  border: 2rpx solid var(--color-input-border);
+  border-radius: var(--radius-full);
+  transition: all 0.3s;
+}
+
+.toggle-btn.active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.toggle-icon {
+  font-size: 28rpx;
+}
+
+.toggle-text {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+.toggle-btn.active .toggle-text {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* 历史车牌 */
+.plate-history {
+  margin-top: 24rpx;
+  padding: 0 8rpx;
+}
+
+.history-title {
+  display: block;
+  font-size: 24rpx;
+  color: var(--color-text-tertiary);
+  margin-bottom: 12rpx;
+}
+
+.history-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.history-list {
+  display: inline-flex;
+  gap: 12rpx;
+}
+
+.history-tag {
+  display: inline-flex;
+  padding: 8rpx 16rpx;
+  background: var(--color-bg);
+  border: 2rpx solid var(--color-input-border);
+  border-radius: var(--radius-full);
+  font-size: 26rpx;
+  color: var(--color-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 自定义键盘 */
+.keyboard-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-card);
+  border-top: 1rpx solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.keyboard {
+  padding: 16rpx 12rpx;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.key-btn {
+  min-width: 64rpx;
+  height: 88rpx;
+  background: var(--color-card);
+  border: 2rpx solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  transition: all 0.1s;
+  flex: 1;
+  max-width: 72rpx;
+}
+
+.key-btn:active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  transform: scale(0.95);
+}
+
+.key-btn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* 省份键盘特殊样式 */
+.province-keyboard .key-btn {
+  font-size: 30rpx;
+}
+
+.province-keyboard .keyboard-row {
+  justify-content: center;
+}
+
+.province-keyboard .key-btn {
+  max-width: 64rpx;
+  min-width: 64rpx;
+}
+
+/* 删除键 */
+.key-btn-delete {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  min-width: 88rpx;
+  max-width: 120rpx;
+  flex: 0 0 100rpx;
+}
+
+.delete-icon {
+  font-size: 36rpx;
+}
+
+/* 字母数字键盘特殊布局 */
+.alphanumeric-keyboard .keyboard-row:first-child {
+  justify-content: space-between;
+}
+
+.alphanumeric-keyboard .keyboard-row:first-child .key-btn {
+  flex: 1;
+  max-width: none;
+}
+
+.alphanumeric-keyboard .keyboard-row:not(:first-child) {
+  justify-content: center;
+}
+
+.alphanumeric-keyboard .keyboard-row:not(:first-child) .key-btn {
+  flex: 1;
+  max-width: 72rpx;
+}

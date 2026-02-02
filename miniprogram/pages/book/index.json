@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "plate-input": "/components/plate-input/index"
+  },
   "navigationBarTitleText": "预约车位"
 }

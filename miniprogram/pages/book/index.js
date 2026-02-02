@@ -85,23 +85,18 @@ Page({
    */
   onPlateInput(e) {
     this.setData({
-      plateNumber: e.detail.value.toUpperCase()
+      plateNumber: e.detail.value
     })
   },
 
   /**
-   * 选择历史车牌
+   * 车牌输入完成
    */
-  onSelectHistory(e) {
-    const plate = e.currentTarget.dataset.plate
-    this.setData({ plateNumber: plate })
-  },
-
-  /**
-   * 新能源车牌
-   */
-  onNewEnergy() {
-    this.setData({ plateNumber: '新能源' })
+  onPlateComplete(e) {
+    const { value, normalized } = e.detail
+    this.setData({
+      plateNumber: normalized || value
+    })
   },
 
   /**
