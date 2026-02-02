@@ -16,6 +16,69 @@ exports.main = async (event, context) => {
   try {
     switch (action) {
       case 'create':
+        // 检查是否重复发布（相同车位号、日期、时间段）
+        const { spotNumber, date, startTime, endTime, location } = publishData
+
+        console.log('[发布校验] 开始检查:', { spotNumber, date, startTime, endTime })
+
+        // 将时间字符串转换为分钟数进行比较
+        const timeToMinutes = (timeStr) => {
+          const [hours, minutes] = timeStr.split(':').map(Number)
+          return hours * 60 + minutes
+        }
+
+        const newStart = timeToMinutes(startTime)
+        const newEnd = timeToMinutes(endTime)
+
+        // 查询相同车位号和日期的发布（包括已取消的，用于日志）
+        const duplicateCheck = await db.collection('parking_releases')
+          .where({
+            spotNumber: spotNumber,
+            date: date
+          })
+          .get()
+
+        console.log('[发布校验] 查询结果:', duplicateCheck.data.length, '条记录')
+
+        // 检查时间段是否重叠（排除已取消的）
+        const hasTimeConflict = duplicateCheck.data.some(existing => {
+          // 跳过已取消的发布
+          if (existing.status === 'cancelled') {
+            return false
+          }
+
+          const existingStart = timeToMinutes(existing.startTime)
+          const existingEnd = timeToMinutes(existing.endTime)
+
+          console.log('[发布校验] 比对:', {
+            existing: `${existing.startTime}-${existing.endTime}`,
+            new: `${startTime}-${endTime}`,
+            existingStart,
+            existingEnd,
+            newStart,
+            newEnd
+          })
+
+          // 时间重叠判断：两个时间段有交集
+          const isConflict = !(newEnd <= existingStart || newStart >= existingEnd)
+
+          if (isConflict) {
+            console.log('[发布校验] 发现时间冲突!')
+          }
+
+          return isConflict
+        })
+
+        if (hasTimeConflict) {
+          console.log('[发布校验] 拒绝发布: 时间段冲突')
+          return {
+            success: false,
+            message: '该车位在此时间段已被发布，请选择其他时间'
+          }
+        }
+
+        console.log('[发布校验] 通过，开始创建发布')
+
         // 创建发布
         const createRes = await db.collection('parking_releases').add({
           data: {

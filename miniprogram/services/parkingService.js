@@ -17,26 +17,28 @@ function getParkingList(params = {}) {
   } = params
 
   // 只查询需要的字段，减少数据传输
+  // 字段名使用驼峰命名，与云函数保持一致
   return db.collection('parking_releases')
     .field({
       _id: true,
-      parking_id: true,
-      owner_id: true,
-      spot_number: true,
+      userId: true,
+      spotNumber: true,
       date: true,
-      start_time: true,
-      end_time: true,
+      startTime: true,
+      endTime: true,
+      duration: true,
       price: true,
       location: true,
+      features: true,
       status: true,
-      create_time: true
+      createdAt: true
     })
     .where({
       status,
       date: _.gte(new Date().toISOString().split('T')[0])
     })
     .orderBy('date', 'asc')
-    .orderBy('start_time', 'asc')
+    .orderBy('startTime', 'asc')
     .limit(limit)
     .skip(skip)
     .get()

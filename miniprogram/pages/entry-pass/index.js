@@ -32,7 +32,18 @@ Page({
 
     try {
       const res = await orderService.getOrderDetail(this.orderId)
-      const orderData = res.data
+      const rawData = res.data
+
+      // 处理字段映射（蛇形命名转驼峰命名）
+      const orderData = {
+        ...rawData,
+        spotNumber: rawData.spot_number || rawData.spotNumber || '未知',
+        startTime: rawData.start_time || rawData.startTime || '--:--',
+        endTime: rawData.end_time || rawData.endTime || '--:--',
+        date: rawData.date || '',
+        plateNumber: rawData.plateNumber || '',
+        timeRange: rawData.timeRange || { start: '', end: '' }
+      }
 
       // 设置状态文本和颜色
       let statusText = ''

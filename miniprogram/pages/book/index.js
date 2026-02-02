@@ -59,10 +59,14 @@ Page({
       )
 
       // 处理数据供 WXML 使用
+      // 使用驼峰命名的字段，与云函数保持一致
       const processedSpotInfo = {
         ...spotInfo,
+        spotNumber: spotInfo.spotNumber || '未知',
         locationName: spotInfo.location && spotInfo.location.name ? spotInfo.location.name : '未知位置',
-        priceHourly: (spotInfo.price && spotInfo.price.hourly) ? (spotInfo.price.hourly / 100) : 5
+        priceHourly: (spotInfo.price && spotInfo.price.hourly) ? (spotInfo.price.hourly / 100) : 5,
+        startTime: spotInfo.startTime || '--:--',
+        endTime: spotInfo.endTime || '--:--'
       }
 
       console.log('处理后的车位信息:', processedSpotInfo)
@@ -153,7 +157,7 @@ Page({
     // 确认弹窗
     const confirmed = await wx.showModal({
       title: '确认预约',
-      content: `预约车位：${spotInfo.spot_number}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：¥${pricing.totalText}`
+      content: `预约车位：${spotInfo.spotNumber || '未知'}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：¥${pricing.totalText}`
     })
 
     if (!confirmed.confirm) return
@@ -166,8 +170,8 @@ Page({
         spotId: this.spotId,
         plateNumber: plateCheck.normalized,
         timeRange: {
-          start: `${spotInfo.date} ${spotInfo.start_time}`,
-          end: `${spotInfo.date} ${spotInfo.end_time}`
+          start: `${spotInfo.date} ${spotInfo.startTime}`,
+          end: `${spotInfo.date} ${spotInfo.endTime}`
         },
         pricing
       })

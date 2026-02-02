@@ -51,6 +51,17 @@ function getMyOrderList(userId) {
 }
 
 /**
+ * 取消订单
+ * @param {string} orderId - 订单ID
+ */
+function cancelOrder(orderId) {
+  return cloudService.callFunction('book', {
+    action: 'cancel',
+    orderId
+  })
+}
+
+/**
  * 获取订单详情
  * @param {string} orderId - 订单ID
  */
@@ -82,6 +93,7 @@ module.exports = {
   createOrder,
   payOrder,
   getMyOrderList,
+  cancelOrder,
   getOrderDetail,
   calculatePrice
 }
