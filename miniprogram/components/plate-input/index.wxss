@@ -260,3 +260,32 @@
   flex: 1;
   max-width: 72rpx;
 }
+
+/* 字母键盘（第2位专用） */
+.letter-keyboard .keyboard-row {
+  justify-content: center;
+}
+
+.letter-keyboard .key-btn {
+  flex: 1;
+  max-width: 72rpx;
+}
+
+/* 新能源专用键盘 */
+.new-energy-keyboard {
+  padding: 40rpx 24rpx;
+}
+
+.new-energy-keyboard .keyboard-row {
+  justify-content: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.key-btn-large {
+  min-width: 200rpx !important;
+  max-width: 280rpx !important;
+  height: 100rpx !important;
+  font-size: 40rpx !important;
+  flex: 0 0 280rpx !important;
+}

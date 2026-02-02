@@ -9,11 +9,14 @@ const PROVINCES = [
   ['晋', '蒙', '陕', '吉', '闽', '贵', '川', '青', '藏', '琼']
 ]
 
-// 字母数字键盘布局
+// 字母数字键盘布局（不包含I和O）
 const NUMBER_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 const LETTER_ROW1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'P']
 const LETTER_ROW2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K']
 const LETTER_ROW3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'L']
+
+// 新能源第3位专用：D或F
+const NEW_ENERGY_THIRD_KEYS = ['D', 'F']
 
 Component({
   /**
@@ -42,12 +45,14 @@ Component({
     segments: ['', '', '', '', '', '', '', ''],
     // 当前输入位置
     currentIndex: 0,
-    // 键盘类型：'province' | 'alphanumeric'
+    // 键盘类型：'province' | 'letter' | 'alphanumeric' | 'newEnergyThird'
     keyboardType: 'province',
     // 是否显示键盘
     showKeyboard: false,
     // 是否新能源车牌
     isNewEnergy: false,
+    // 是否显示新能源切换按钮（输入2位后才显示）
+    showNewEnergyBtn: false,
     // 省份键盘（3行）
     provinceRows: PROVINCES,
     // 数字键
@@ -56,6 +61,8 @@ Component({
     letterRow1: LETTER_ROW1,
     letterRow2: LETTER_ROW2,
     letterRow3: LETTER_ROW3,
+    // 新能源第3位专用键
+    newEnergyThirdKeys: NEW_ENERGY_THIRD_KEYS,
     // 历史车牌
     plateHistory: []
   },
@@ -104,7 +111,8 @@ Component({
       this.setData({
         segments,
         isNewEnergy,
-        currentIndex: normalized.length < 8 ? normalized.length : 7
+        currentIndex: normalized.length < 8 ? normalized.length : 7,
+        showNewEnergyBtn: normalized.length >= 2
       })
     },
 
@@ -152,9 +160,34 @@ Component({
 
       this.setData({
         currentIndex: index,
-        showKeyboard: true,
-        keyboardType: index === 0 ? 'province' : 'alphanumeric'
+        showKeyboard: true
       })
+      this.updateKeyboardType()
+    },
+
+    /**
+     * 更新键盘类型
+     */
+    updateKeyboardType() {
+      const { currentIndex, isNewEnergy, segments } = this.data
+
+      let keyboardType = 'alphanumeric'
+
+      if (currentIndex === 0) {
+        // 第1位：省份键盘
+        keyboardType = 'province'
+      } else if (currentIndex === 1) {
+        // 第2位：字母键盘（不含I、O）
+        keyboardType = 'letter'
+      } else if (currentIndex === 2 && isNewEnergy) {
+        // 新能源模式第3位：只能D或F
+        keyboardType = 'newEnergyThird'
+      } else {
+        // 其他位置：字母数字混合
+        keyboardType = 'alphanumeric'
+      }
+
+      this.setData({ keyboardType })
     },
 
     /**
@@ -189,20 +222,33 @@ Component({
      * 删除键
      */
     onDelete() {
-      const { currentIndex, segments } = this.data
+      const { currentIndex, segments, isNewEnergy } = this.data
 
-      if (currentIndex > 0) {
+      if (currentIndex > 0 || segments[currentIndex]) {
         // 清空当前位
         segments[currentIndex] = ''
-        // 移动到上一位
-        const newIndex = currentIndex - 1
-        segments[newIndex] = ''
+
+        // 计算新的当前索引
+        let newIndex = currentIndex - 1
+        if (newIndex < 0) newIndex = 0
+
+        // 检查是否需要取消新能源状态
+        let shouldCancelNewEnergy = isNewEnergy
+        // 如果删除后长度<2，取消新能源状态
+        const filledLength = segments.filter(s => s).length - 1
+        if (filledLength < 2 && isNewEnergy) {
+          shouldCancelNewEnergy = false
+          segments[7] = '' // 清空第8位
+        }
 
         this.setData({
           segments,
           currentIndex: newIndex,
-          keyboardType: newIndex === 0 ? 'province' : 'alphanumeric'
+          isNewEnergy: !shouldCancelNewEnergy,
+          showNewEnergyBtn: filledLength >= 2
         })
+
+        this.updateKeyboardType()
 
         // 触发输入事件
         const fullPlate = this.getFullPlate()
@@ -218,19 +264,19 @@ Component({
      * 移动到下一个输入位置
      */
     moveToNextPosition() {
-      const { currentIndex, isNewEnergy } = this.data
+      const { currentIndex, isNewEnergy, segments } = this.data
       const maxLength = isNewEnergy ? 8 : 7
 
       if (currentIndex < maxLength - 1) {
         const newIndex = currentIndex + 1
+        const filledLength = segments.filter(s => s).length
+
         this.setData({
-          currentIndex: newIndex
+          currentIndex: newIndex,
+          showNewEnergyBtn: filledLength >= 2
         })
 
-        // 如果到达第8位且未启用新能源，自动启用
-        if (newIndex === 7 && !isNewEnergy) {
-          this.setData({ isNewEnergy: true })
-        }
+        this.updateKeyboardType()
       } else {
         // 输入完成
         this.onInputComplete()
@@ -249,7 +295,10 @@ Component({
         this.savePlateHistory(fullPlate)
 
         // 隐藏键盘
-        this.setData({ showKeyboard: false })
+        this.setData({
+          showKeyboard: false,
+          currentIndex: -1 // 移除焦点
+        })
 
         // 触发完成事件
         this.triggerEvent('complete', {
@@ -269,12 +318,12 @@ Component({
      */
     onToggleNewEnergy() {
       const isNewEnergy = !this.data.isNewEnergy
-      const { segments } = this.data
+      const { segments, currentIndex } = this.data
 
       // 如果关闭新能源，清空第8位
       if (!isNewEnergy) {
         segments[7] = ''
-        if (this.data.currentIndex === 7) {
+        if (currentIndex === 7) {
           this.setData({ currentIndex: 6 })
         }
       }
@@ -283,6 +332,8 @@ Component({
         isNewEnergy,
         segments
       })
+
+      this.updateKeyboardType()
 
       // 触发输入事件
       const fullPlate = this.getFullPlate()
@@ -312,19 +363,25 @@ Component({
      * 检查按键在当前位置是否有效
      */
     isValidForPosition(key) {
-      const { currentIndex, segments } = this.data
+      const { currentIndex, isNewEnergy, keyboardType } = this.data
 
       // 第1位：必须是省份
       if (currentIndex === 0) {
         return PROVINCES.flat().includes(key)
       }
 
-      // 第2位：必须是字母
+      // 第2位：必须是字母（不含I、O）
       if (currentIndex === 1) {
-        return LETTER_ROW1.concat(LETTER_ROW2, LETTER_ROW3).includes(key)
+        const validLetters = LETTER_ROW1.concat(LETTER_ROW2, LETTER_ROW3)
+        return validLetters.includes(key)
       }
 
-      // 第3-8位：可以是字母或数字
+      // 新能源模式第3位：必须是D或F
+      if (currentIndex === 2 && isNewEnergy) {
+        return key === 'D' || key === 'F'
+      }
+
+      // 第3-8位：可以是字母或数字或特殊字符
       const allValidChars = NUMBER_KEYS.concat(
         LETTER_ROW1,
         LETTER_ROW2,
@@ -352,6 +409,7 @@ Component({
         showKeyboard: true,
         currentIndex: this.getFirstEmptyIndex()
       })
+      this.updateKeyboardType()
     },
 
     /**
@@ -362,6 +420,7 @@ Component({
         segments: ['', '', '', '', '', '', '', ''],
         currentIndex: 0,
         isNewEnergy: false,
+        showNewEnergyBtn: false,
         showKeyboard: false
       })
       this.triggerEvent('input', {

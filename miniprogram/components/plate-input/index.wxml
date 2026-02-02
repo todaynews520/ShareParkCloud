@@ -48,14 +48,14 @@
       </view>
     </view>
 
-    <!-- 新能源切换按钮 -->
-    <view class="plate-toggle">
+    <!-- 新能源切换按钮（输入2位后才显示） -->
+    <view class="plate-toggle" wx:if="{{showNewEnergyBtn}}">
       <view
         class="toggle-btn {{isNewEnergy ? 'active' : ''}}"
         bindtap="onToggleNewEnergy"
       >
         <text class="toggle-icon">⚡</text>
-        <text class="toggle-text">新能源</text>
+        <text class="toggle-text">+ 新能源</text>
       </view>
     </view>
   </view>
@@ -122,7 +122,69 @@
       </view>
     </view>
 
-    <!-- 字母数字键盘 -->
+    <!-- 字母键盘（第2位专用，不含I、O） -->
+    <view wx:if="{{keyboardType === 'letter'}}" class="keyboard letter-keyboard">
+      <view class="keyboard-row">
+        <view
+          wx:for="{{letterRow1}}"
+          wx:key="*this"
+          class="key-btn"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view
+          wx:for="{{letterRow2}}"
+          wx:key="*this"
+          class="key-btn"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view
+          wx:for="{{letterRow3}}"
+          wx:key="*this"
+          class="key-btn"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view class="key-btn key-btn-delete" bindtap="onDelete">
+          <text class="delete-icon">⌫</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 新能源第3位专用键盘（只能D或F） -->
+    <view wx:if="{{keyboardType === 'newEnergyThird'}}" class="keyboard new-energy-keyboard">
+      <view class="keyboard-row">
+        <view
+          wx:for="{{newEnergyThirdKeys}}"
+          wx:key="*this"
+          class="key-btn key-btn-large"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+      <view class="keyboard-row">
+        <view class="key-btn key-btn-delete key-btn-large" bindtap="onDelete">
+          <text class="delete-icon">⌫ 删除</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 字母数字混合键盘（第3-8位） -->
     <view wx:if="{{keyboardType === 'alphanumeric'}}" class="keyboard alphanumeric-keyboard">
       <!-- 数字行 -->
       <view class="keyboard-row">
@@ -168,6 +230,19 @@
       <view class="keyboard-row">
         <view
           wx:for="{{letterRow3}}"
+          wx:key="*this"
+          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          bindtap="onKeyPress"
+          data-key="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+
+      <!-- 特殊字符行 -->
+      <view class="keyboard-row">
+        <view
+          wx:for="{{['挂', '学', '警', '港', '澳']}}"
           wx:key="*this"
           class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
           bindtap="onKeyPress"
