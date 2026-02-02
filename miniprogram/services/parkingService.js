@@ -16,7 +16,21 @@ function getParkingList(params = {}) {
     skip = 0
   } = params
 
+  // 只查询需要的字段，减少数据传输
   return db.collection('parking_releases')
+    .field({
+      _id: true,
+      parking_id: true,
+      owner_id: true,
+      spot_number: true,
+      date: true,
+      start_time: true,
+      end_time: true,
+      price: true,
+      location: true,
+      status: true,
+      create_time: true
+    })
     .where({
       status,
       date: _.gte(new Date().toISOString().split('T')[0])

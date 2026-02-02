@@ -8,7 +8,8 @@ App({
     userInfo: null,      // 用户信息
     openid: '',          // 用户openid
     isLoggedIn: false,   // 登录状态
-    db: null             // 数据库实例
+    db: null,            // 数据库实例
+    cloudReady: false    // 云开发是否就绪
   },
 
   /**
@@ -16,6 +17,10 @@ App({
    */
   getDB() {
     if (!this.globalData.db) {
+      if (!this.globalData.cloudReady) {
+        console.warn('云开发尚未初始化')
+        return null
+      }
       this.globalData.db = wx.cloud.database()
     }
     return this.globalData.db
@@ -33,30 +38,46 @@ App({
       return
     }
 
-    wx.cloud.init({
-      env: ENV_CONFIG.CLOUD_ENV,
-      traceUser: true
-    })
+    try {
+      wx.cloud.init({
+        env: ENV_CONFIG.CLOUD_ENV,
+        traceUser: true
+      })
 
-    // 初始化数据库
-    this.globalData.db = wx.cloud.database()
+      this.globalData.cloudReady = true
+      console.log('云开发初始化成功，环境ID:', ENV_CONFIG.CLOUD_ENV)
 
-    // 检查登录状态
-    this.checkLoginStatus()
+      // 初始化数据库
+      this.globalData.db = wx.cloud.database()
+
+      // 检查登录状态
+      this.checkLoginStatus()
+    } catch (err) {
+      console.error('云开发初始化失败:', err)
+      wx.showModal({
+        title: '提示',
+        content: '云开发初始化失败，请检查云环境配置',
+        showCancel: false
+      })
+    }
   },
 
   /**
    * 检查登录状态
    */
   checkLoginStatus() {
-    const userInfo = cache.get('userInfo')
-    const openid = cache.get('openid')
+    try {
+      const userInfo = cache.get('userInfo')
+      const openid = cache.get('openid')
 
-    if (userInfo && openid) {
-      this.globalData.userInfo = userInfo
-      this.globalData.openid = openid
-      this.globalData.isLoggedIn = true
-      console.log('用户已登录:', userInfo.nickname)
+      if (userInfo && openid) {
+        this.globalData.userInfo = userInfo
+        this.globalData.openid = openid
+        this.globalData.isLoggedIn = true
+        console.log('用户已登录:', userInfo.nickname)
+      }
+    } catch (err) {
+      console.error('检查登录状态失败:', err)
     }
   },
 
@@ -65,22 +86,31 @@ App({
    */
   login() {
     return new Promise((resolve, reject) => {
+      if (!this.globalData.cloudReady) {
+        reject(new Error('云开发尚未初始化'))
+        return
+      }
+
       wx.cloud.callFunction({
         name: 'login',
         data: {}
       }).then(res => {
-        const { openid, userId, userData } = res.result
+        if (res.result && res.result.success) {
+          const { openid, userId, userData } = res.result
 
-        // 保存到全局
-        this.globalData.openid = openid
-        this.globalData.userInfo = userData
-        this.globalData.isLoggedIn = true
+          // 保存到全局
+          this.globalData.openid = openid
+          this.globalData.userInfo = userData
+          this.globalData.isLoggedIn = true
 
-        // 保存到本地缓存
-        cache.set('openid', openid)
-        cache.set('userInfo', userData)
+          // 保存到本地缓存
+          cache.set('openid', openid)
+          cache.set('userInfo', userData)
 
-        resolve({ openid, userId, userData })
+          resolve({ openid, userId, userData })
+        } else {
+          reject(new Error(res.result?.message || '登录失败'))
+        }
       }).catch(err => {
         console.error('登录失败:', err)
         reject(err)
@@ -92,15 +122,25 @@ App({
    * 退出登录
    */
   logout() {
-    this.globalData.userInfo = null
-    this.globalData.openid = ''
-    this.globalData.isLoggedIn = false
+    try {
+      // 清除全局数据
+      this.globalData.userInfo = null
+      this.globalData.openid = ''
+      this.globalData.isLoggedIn = false
 
-    cache.remove('openid')
-    cache.remove('userInfo')
+      // 清除本地缓存
+      cache.remove('openid')
+      cache.remove('userInfo')
 
-    wx.reLaunch({
-      url: '/pages/home/index'
-    })
+      // 重定向到首页
+      wx.reLaunch({
+        url: '/pages/home/index',
+        fail: (err) => {
+          console.error('页面跳转失败:', err)
+        }
+      })
+    } catch (err) {
+      console.error('退出登录失败:', err)
+    }
   }
 })
