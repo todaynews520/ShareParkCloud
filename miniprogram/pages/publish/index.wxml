@@ -22,10 +22,7 @@
     <view class="form-item">
       <text class="label">车位位置</text>
       <view class="location-picker" bindtap="onChooseLocation">
-        <text class="location-value {{location.name ? '' : 'placeholder'}}">
-          {{location.name || '点击选择车位位置'}}
-        </text>
-        <text class="location-arrow">›</text>
+        <text class="location-text {{location.name ? '' : 'placeholder'}}">{{location.name || '点击选择'}} ›</text>
       </view>
     </view>
   </view>

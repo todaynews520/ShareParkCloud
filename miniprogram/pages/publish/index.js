@@ -38,7 +38,19 @@ Page({
 
   onLoad() {
     this.initDates()
+    this.setDefaultTime()
     this.calculateEarning()
+  },
+
+  /**
+   * 设置默认时间为当前小时
+   */
+  setDefaultTime() {
+    const now = new Date()
+    const currentHour = now.getHours()
+    this.setData({
+      'form.startHour': currentHour
+    })
   },
 
   /**

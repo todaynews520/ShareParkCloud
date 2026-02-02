@@ -13,46 +13,15 @@
   height: 40vh;
   min-height: 280px;
   max-height: 320px;
-  background: linear-gradient(135deg, #ccfbf1 0%, #d1fae5 100%);
   overflow: hidden;
 }
 
-.map-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(13, 148, 136, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(13, 148, 136, 0.1) 1px, transparent 1px);
-  background-size: 30px 30px;
+.parking-map {
+  width: 100%;
+  height: 100%;
 }
 
-.location-dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 24rpx;
-  height: 24rpx;
-  background: #3b82f6;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 8rpx rgba(59, 130, 246, 0.3);
-}
-
-.spot-marker {
-  position: absolute;
-  width: 16rpx;
-  height: 16rpx;
-  background: var(--color-accent);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translate(-50%, -50%); }
-  50% { transform: translate(-50%, -70%); }
-}
-
+/* 覆盖层样式 */
 .range-selector {
   position: absolute;
   top: 24rpx;
@@ -64,11 +33,11 @@
 
 .range-btn {
   padding: 8rpx 16rpx;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 24rpx;
   font-size: 24rpx;
   color: var(--color-text-secondary);
-  backdrop-filter: blur(10rpx);
+  text-align: center;
   transition: all 0.2s;
 }
 
@@ -87,12 +56,12 @@
   padding: 24rpx;
   display: flex;
   align-items: center;
-  gap: 12rpx;
   box-shadow: var(--shadow-lg);
 }
 
 .search-icon {
   font-size: 32rpx;
+  margin-right: 12rpx;
 }
 
 .search-text {

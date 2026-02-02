@@ -15,9 +15,6 @@
         <text class="box-text">{{segments[0] || ''}}</text>
       </view>
 
-      <!-- 间隔点 -->
-      <view class="plate-dot"></view>
-
       <!-- 第2位：字母 -->
       <view
         class="plate-box {{currentIndex === 1 ? 'active' : ''}} {{segments[1] ? 'filled' : ''}}"
@@ -26,6 +23,9 @@
       >
         <text class="box-text">{{segments[1] || ''}}</text>
       </view>
+
+      <!-- 间隔点 -->
+      <view class="plate-dot"></view>
 
       <!-- 第3-7位：字母数字混合 -->
       <view
@@ -80,6 +80,14 @@
 
   <!-- 自定义键盘 -->
   <view wx:if="{{showKeyboard}}" class="keyboard-container">
+    <!-- 键盘标题栏（含关闭按钮） -->
+    <view class="keyboard-header">
+      <text class="keyboard-title">{{keyboardType === 'province' ? '选择省份' : (keyboardType === 'letter' ? '输入字母' : (keyboardType === 'newEnergyThird' ? '新能源专用' : '输入车牌'))}}</text>
+      <view class="keyboard-close" bindtap="onCloseKeyboard">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+
     <!-- 省份键盘 -->
     <view wx:if="{{keyboardType === 'province'}}" class="keyboard province-keyboard">
       <view class="keyboard-row">
@@ -191,7 +199,7 @@
         <view
           wx:for="{{numberKeys}}"
           wx:key="*this"
-          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          class="key-btn"
           bindtap="onKeyPress"
           data-key="{{item}}"
         >
@@ -207,7 +215,7 @@
         <view
           wx:for="{{letterRow1}}"
           wx:key="*this"
-          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          class="key-btn"
           bindtap="onKeyPress"
           data-key="{{item}}"
         >
@@ -219,7 +227,7 @@
         <view
           wx:for="{{letterRow2}}"
           wx:key="*this"
-          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          class="key-btn"
           bindtap="onKeyPress"
           data-key="{{item}}"
         >
@@ -231,7 +239,7 @@
         <view
           wx:for="{{letterRow3}}"
           wx:key="*this"
-          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          class="key-btn"
           bindtap="onKeyPress"
           data-key="{{item}}"
         >
@@ -244,7 +252,7 @@
         <view
           wx:for="{{['挂', '学', '警', '港', '澳']}}"
           wx:key="*this"
-          class="key-btn {{isValidForPosition(item) ? '' : 'disabled'}}"
+          class="key-btn"
           bindtap="onKeyPress"
           data-key="{{item}}"
         >

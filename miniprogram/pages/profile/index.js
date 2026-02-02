@@ -85,13 +85,28 @@ Page({
       const publishList = publishRes.data || []
       const orderList = orderRes.data || []
 
+      // 转换字段名：snake_case -> camelCase
+      const processedPublishList = publishList.map(item => ({
+        ...item,
+        spotNumber: item.spotNumber || item.spot_number || '未知',
+        startTime: item.startTime || item.start_time || '--:--',
+        endTime: item.endTime || item.end_time || '--:--'
+      }))
+
+      const processedOrderList = orderList.map(item => ({
+        ...item,
+        spotNumber: item.spotNumber || item.spot_number || '未知',
+        startTime: item.startTime || item.start_time || '--:--',
+        endTime: item.endTime || item.end_time || '--:--'
+      }))
+
       // 调试：打印数据
-      console.log('发布列表:', publishList)
-      console.log('订单列表:', orderList)
+      console.log('发布列表:', processedPublishList)
+      console.log('订单列表:', processedOrderList)
 
       this.setData({
-        publishList,
-        orderList
+        publishList: processedPublishList,
+        orderList: processedOrderList
       })
     } catch (err) {
       console.error('加载数据失败:', err)
@@ -174,6 +189,32 @@ Page({
     const orderId = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/entry-pass/index?orderId=${orderId}`
+    })
+  },
+
+  /**
+   * 取消预约
+   */
+  onCancelBooking(e) {
+    const orderId = e.currentTarget.dataset.id
+
+    wx.showModal({
+      title: '提示',
+      content: '确定要取消这个预约吗？',
+      success: (res) => {
+        if (res.confirm) {
+          showLoading('处理中...')
+
+          orderService.cancelOrder(orderId).then(() => {
+            hideLoading()
+            wx.showToast({ title: '已取消', icon: 'success' })
+            this.loadData()
+          }).catch(err => {
+            hideLoading()
+            handleError(err, '操作失败')
+          })
+        }
+      }
     })
   }
 })

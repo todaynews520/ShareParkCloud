@@ -1,8 +1,14 @@
 <view class="book-page">
+  <!-- 加载状态 -->
+  <view wx:if="{{!spotInfo}}" class="loading-state">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载车位信息中...</text>
+  </view>
+
   <!-- 车位信息卡片 -->
-  <view class="info-card">
+  <view wx:else class="info-card">
     <view class="card-header">
-      <text class="spot-number">{{spotInfo.spot_number}}号</text>
+      <text class="spot-number">{{spotInfo.spotNumber || '未知'}}号</text>
       <view class="status-badge">可用</view>
     </view>
     <text class="spot-location">{{spotInfo.locationName || '未知位置'}}</text>
@@ -14,39 +20,41 @@
   </view>
 
   <!-- 详情网格 -->
-  <view class="detail-grid">
+  <view wx:if="{{spotInfo}}" class="detail-grid">
     <view class="detail-item">
       <text class="detail-icon">📅</text>
       <view class="detail-content">
         <text class="detail-label">日期</text>
-        <text class="detail-value">{{spotInfo.date}}</text>
+        <text class="detail-value">{{spotInfo.date || '-'}}</text>
       </view>
     </view>
     <view class="detail-item">
       <text class="detail-icon">⏰</text>
       <view class="detail-content">
         <text class="detail-label">时段</text>
-        <text class="detail-value">{{spotInfo.start_time}}-{{spotInfo.end_time}}</text>
+        <text class="detail-value">{{spotInfo.startTime || '-'}}-{{spotInfo.endTime || '-'}}</text>
       </view>
     </view>
     <view class="detail-item">
       <text class="detail-icon">⏱️</text>
       <view class="detail-content">
         <text class="detail-label">时长</text>
-        <text class="detail-value">{{spotInfo.duration}}小时</text>
+        <text class="detail-value">{{spotInfo.duration || 0}}小时</text>
       </view>
     </view>
   </view>
 
   <!-- 车牌输入 -->
-  <plate-input
-    value="{{plateNumber}}"
-    bind:input="onPlateInput"
-    bind:complete="onPlateComplete"
-  />
+  <view wx:if="{{spotInfo}}">
+    <plate-input
+      value="{{plateNumber}}"
+      bind:input="onPlateInput"
+      bind:complete="onPlateComplete"
+    />
+  </view>
 
   <!-- 费用明细 -->
-  <view class="card">
+  <view wx:if="{{spotInfo}}" class="card">
     <view class="card-title">费用明细</view>
     <view class="fee-row">
       <text class="fee-label">车位费</text>
@@ -63,7 +71,7 @@
   </view>
 
   <!-- 底部按钮 -->
-  <view class="footer">
+  <view wx:if="{{spotInfo}}" class="footer">
     <view class="footer-price">
       <text class="footer-label">需支付</text>
       <text class="footer-amount">¥{{pricing.totalText}}</text>

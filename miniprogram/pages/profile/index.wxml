@@ -1,12 +1,14 @@
 <view class="profile-page">
   <!-- 用户信息区域 -->
   <view class="user-section">
-    <view wx:if="{{isLoggedIn}}">
+    <view wx:if="{{isLoggedIn}}" class="user-content">
       <image class="user-avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
-      <text class="user-name">{{userInfo.nickname}}</text>
-      <view class="user-tags">
-        <text class="user-tag">实名认证</text>
-        <text class="user-tag">优质车主</text>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickname}}</text>
+        <view class="user-tags">
+          <text class="user-tag">实名认证</text>
+          <text class="user-tag">优质车主</text>
+        </view>
       </view>
     </view>
     <view wx:else class="guest-section">
@@ -69,10 +71,10 @@
           class="list-item"
         >
           <view class="item-header">
-            <text class="item-title">{{item.spot_number}}号</text>
+            <text class="item-title">{{item.spotNumber || '未知'}}号</text>
             <view class="status-badge {{item.status}}">{{item.status === 'available' ? '进行中' : '已结束'}}</view>
           </view>
-          <text class="item-time">{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
+          <text class="item-time">{{item.date}} {{item.startTime || '--:--'}}-{{item.endTime || '--:--'}}</text>
           <view class="item-actions" wx:if="{{item.status === 'available'}}">
             <button class="action-btn cancel" bindtap="onCancelPublish" data-id="{{item._id}}">取消发布</button>
           </view>
@@ -94,14 +96,15 @@
           class="list-item"
         >
           <view class="item-header">
-            <text class="item-title">{{item.spot_number || '未知'}}号</text>
+            <text class="item-title">{{item.spotNumber || '未知'}}号</text>
             <view class="status-badge {{item.status}}">{{item.status === 'paid' ? '即将开始' : (item.status === 'active' ? '进行中' : '已结束')}}</view>
           </view>
-          <text class="item-time">{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
+          <text class="item-time">{{item.date}} {{item.startTime || '--:--'}}-{{item.endTime || '--:--'}}</text>
           <text class="item-plate">车牌: {{item.plateNumber}}</text>
 
-          <!-- 入场凭证按钮 -->
+          <!-- 操作按钮 -->
           <view class="item-actions" wx:if="{{item.status === 'paid' || item.status === 'active'}}">
+            <button wx:if="{{item.status === 'paid'}}" class="action-btn cancel" bindtap="onCancelBooking" data-id="{{item._id}}">取消预约</button>
             <button class="action-btn primary" bindtap="onViewEntryPass" data-id="{{item._id}}">
               {{item.status === 'paid' ? '查看入场凭证' : '查看停车凭证'}}
             </button>

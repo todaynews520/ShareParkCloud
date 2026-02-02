@@ -12,9 +12,12 @@
   padding: 48rpx 24rpx;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   color: #fff;
+}
+
+.user-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 24rpx;
 }
 
 .user-avatar {
@@ -22,13 +25,20 @@
   height: 120rpx;
   border-radius: 50%;
   border: 4rpx solid rgba(255, 255, 255, 0.3);
-  margin-bottom: 16rpx;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12rpx;
 }
 
 .user-name {
   font-size: 36rpx;
   font-weight: 600;
-  margin-bottom: 16rpx;
 }
 
 .user-tags {

@@ -166,6 +166,16 @@ Component({
     },
 
     /**
+     * 关闭键盘
+     */
+    onCloseKeyboard() {
+      this.setData({
+        showKeyboard: false,
+        currentIndex: -1
+      })
+    },
+
+    /**
      * 更新键盘类型
      */
     updateKeyboardType() {

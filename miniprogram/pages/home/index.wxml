@@ -1,32 +1,38 @@
 <view class="home-page">
   <!-- 地图视图区域 -->
   <view class="map-hero">
-    <view class="map-grid"></view>
-    <view class="location-dot"></view>
-    <view wx:for="{{parkingList}}" wx:key="_id" class="spot-marker" style="top: {{item.top || 50}}%; left: {{item.left || 50}}%;"></view>
+    <map
+      id="parkingMap"
+      class="parking-map"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      scale="{{mapScale}}"
+      show-location="{{true}}"
+      markers="{{mapMarkers}}"
+      bindmarkertap="onMarkerTap"
+      bindregionchange="onRegionChange"
+    >
+      <!-- 范围选择器（覆盖在地图上） -->
+      <cover-view class="range-selector">
+        <cover-view
+          wx:for="{{[500, 1000, 3000]}}"
+          wx:key="*this"
+          wx:for-item="range"
+          class="range-btn {{range === selectedRange ? 'active' : ''}}"
+          bindtap="onRangeChange"
+          data-range="{{range}}"
+        >
+          {{range < 1000 ? range + 'm' : (range/1000) + 'km'}}
+        </cover-view>
+      </cover-view>
 
-    <!-- 范围选择器 -->
-    <view class="range-selector">
-      <view
-        wx:for="{{[500, 1000, 3000]}}"
-        wx:key="*this"
-        wx:for-item="range"
-        wx:for-index="idx"
-        class="range-btn {{range === range ? 'active' : ''}}"
-        bindtap="onRangeChange"
-        data-range="{{range}}"
-        data-text="{{range < 1000 ? range + 'm' : (range/1000) + 'km'}}"
-      >
-        {{range < 1000 ? range + 'm' : (range/1000) + 'km'}}
-      </view>
-    </view>
-
-    <!-- 搜索卡片 -->
-    <view class="search-card">
-      <text class="search-icon">📍</text>
-      <text class="search-text">附近车位</text>
-      <text class="search-count">{{parkingList.length}}个可用</text>
-    </view>
+      <!-- 搜索卡片（覆盖在地图上） -->
+      <cover-view class="search-card">
+        <cover-view class="search-icon">📍</cover-view>
+        <cover-view class="search-text">附近车位</cover-view>
+        <cover-view class="search-count">{{parkingList.length}}个可用</cover-view>
+      </cover-view>
+    </map>
   </view>
 
   <!-- 筛选标签栏 -->
@@ -68,7 +74,7 @@
       >
         <view class="card-header">
           <view class="spot-info">
-            <text class="spot-number">{{item.spot_number || '未知'}}号</text>
+            <text class="spot-number">{{item.spotNumber || '未知'}}号</text>
           </view>
           <view class="spot-price">
             <text class="price-symbol">¥</text>
@@ -85,7 +91,7 @@
 
           <view class="spot-time">
             <text class="time-icon">⏰</text>
-            <text>{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
+            <text>{{item.date}} {{item.startTime}}-{{item.endTime}}</text>
           </view>
 
           <view class="spot-features" wx:if="{{item.features}}">
