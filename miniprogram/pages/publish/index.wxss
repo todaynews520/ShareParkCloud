@@ -63,6 +63,37 @@
   color: var(--color-text-primary);
 }
 
+/* 位置选择器 */
+.location-picker {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  background: var(--color-bg);
+  border-radius: 12rpx;
+  margin-left: 16rpx;
+}
+
+.location-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-value.placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.location-arrow {
+  font-size: 36rpx;
+  color: var(--color-text-tertiary);
+  margin-left: 8rpx;
+}
+
 /* 日期选择 */
 .date-list {
   display: flex;

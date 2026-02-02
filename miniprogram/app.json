@@ -40,5 +40,14 @@
       }
     ]
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于显示附近车位和导航"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
   "sitemapLocation": "sitemap.json"
 }

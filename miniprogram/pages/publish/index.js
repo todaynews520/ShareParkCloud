@@ -20,6 +20,13 @@ Page({
         isIndoor: false
       }
     },
+    // 位置信息
+    location: {
+      name: '',
+      address: '',
+      latitude: 0,
+      longitude: 0
+    },
     // UI状态
     dates: [],
     selectedDateIndex: 0,
@@ -134,6 +141,44 @@ Page({
   },
 
   /**
+   * 选择位置
+   */
+  onChooseLocation() {
+    wx.chooseLocation({
+      success: (res) => {
+        this.setData({
+          location: {
+            name: res.name || '选中位置',
+            address: res.address,
+            latitude: res.latitude,
+            longitude: res.longitude
+          }
+        })
+      },
+      fail: (err) => {
+        console.error('选择位置失败:', err)
+        if (err.errMsg.includes('auth deny')) {
+          wx.showModal({
+            title: '需要位置权限',
+            content: '请在设置中开启位置权限，以便选择车位位置',
+            confirmText: '去设置',
+            success: (res) => {
+              if (res.confirm) {
+                wx.openSetting()
+              }
+            }
+          })
+        } else {
+          wx.showToast({
+            title: '选择位置失败，请重试',
+            icon: 'none'
+          })
+        }
+      }
+    })
+  },
+
+  /**
    * 切换特性
    */
   onFeatureToggle(e) {
@@ -199,6 +244,7 @@ Page({
           hourly: form.price * 100, // 转换为分
           currency: 'CNY'
         },
+        location: this.data.location,
         features: form.features
       })
 

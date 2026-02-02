@@ -1,4 +1,8 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "发布车位"
+  "navigationBarTitleText": "发布车位",
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ]
 }
