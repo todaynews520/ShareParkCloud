@@ -1,6 +1,7 @@
 // app.js - 应用入口
 const ENV_CONFIG = require('./config/env.js')
 const cache = require('./utils/cache.js')
+const pointsService = require('./services/pointsService.js')
 
 App({
   // 全局数据
@@ -94,7 +95,7 @@ App({
       wx.cloud.callFunction({
         name: 'login',
         data: {}
-      }).then(res => {
+      }).then(async res => {
         if (res.result && res.result.success) {
           const { openid, userId, userData } = res.result
 
@@ -106,6 +107,14 @@ App({
           // 保存到本地缓存
           cache.set('openid', openid)
           cache.set('userInfo', userData)
+
+          // 初始化用户积分
+          try {
+            await pointsService.initUserPoints()
+          } catch (err) {
+            console.error('初始化积分失败:', err)
+            // 不阻塞登录流程
+          }
 
           resolve({ openid, userId, userData })
         } else {

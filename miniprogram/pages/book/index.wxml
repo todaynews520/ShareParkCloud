@@ -12,10 +12,10 @@
       <view class="status-badge">可用</view>
     </view>
     <text class="spot-location">{{spotInfo.locationName || '未知位置'}}</text>
-    <view class="spot-price">
-      <text class="price-symbol">¥</text>
-      <text class="price-value">{{spotInfo.priceHourly || 5}}</text>
-      <text class="price-unit">/小时</text>
+    <view class="spot-points">
+      <text class="points-icon">💎</text>
+      <text class="points-value">{{pricing.totalText}}</text>
+      <text class="points-unit">积分</text>
     </view>
   </view>
 
@@ -57,16 +57,12 @@
   <view wx:if="{{spotInfo}}" class="card">
     <view class="card-title">费用明细</view>
     <view class="fee-row">
-      <text class="fee-label">车位费</text>
-      <text class="fee-value">¥{{pricing.baseFeeText}}</text>
-    </view>
-    <view class="fee-row">
-      <text class="fee-label">服务费</text>
-      <text class="fee-value">¥{{pricing.serviceFeeText}}</text>
+      <text class="fee-label">预约费用</text>
+      <text class="fee-value">{{pricing.totalText}}积分</text>
     </view>
     <view class="fee-row total">
       <text class="fee-label">合计</text>
-      <text class="fee-value total-price">¥{{pricing.totalText}}</text>
+      <text class="fee-value total-price">{{pricing.totalText}}积分</text>
     </view>
   </view>
 
@@ -74,7 +70,7 @@
   <view wx:if="{{spotInfo}}" class="footer">
     <view class="footer-price">
       <text class="footer-label">需支付</text>
-      <text class="footer-amount">¥{{pricing.totalText}}</text>
+      <text class="footer-amount">{{pricing.totalText}}积分</text>
     </view>
     <button class="confirm-btn" bindtap="onConfirm">立即预约</button>
   </view>

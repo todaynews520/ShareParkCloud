@@ -1,6 +1,9 @@
 // cloudfunctions/publish/index.js - 发布车位云函数
 const cloud = require('wx-server-sdk')
 
+// 积分奖励常量
+const PUBLISH_REWARD = 50
+
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
@@ -109,6 +112,29 @@ exports.main = async (event, context) => {
             updatedAt: db.serverDate()
           }
         })
+
+        // 发布成功奖励积分
+        try {
+          const userRes = await db.collection('users').where({ openid }).get()
+          if (userRes.data.length > 0) {
+            const user = userRes.data[0]
+            const newPoints = (user.points || 0) + PUBLISH_REWARD
+
+            await db.collection('users').doc(user._id).update({
+              data: {
+                points: newPoints,
+                totalEarned: _.inc(PUBLISH_REWARD),
+                publishCount: _.inc(1),
+                updatedAt: db.serverDate()
+              }
+            })
+
+            console.log('[发布奖励] 用户积分已更新:', { openid, reward: PUBLISH_REWARD, newPoints })
+          }
+        } catch (pointsErr) {
+          console.error('[发布奖励] 积分更新失败:', pointsErr)
+          // 不阻塞发布流程
+        }
 
         return {
           success: true,

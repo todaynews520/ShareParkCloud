@@ -76,10 +76,8 @@
           <view class="spot-info">
             <text class="spot-number">{{item.spotNumber || '未知'}}号</text>
           </view>
-          <view class="spot-price">
-            <text class="price-symbol">¥</text>
-            <text class="price-value">{{item.priceHourly || 5}}</text>
-            <text class="price-unit">/时</text>
+          <view class="spot-status">
+            <text class="status-text">{{item.status === 'available' ? '可预约' : '已占用'}}</text>
           </view>
         </view>
 

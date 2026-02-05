@@ -1,5 +1,16 @@
 // config/constants.js - 常量定义
 
+// 积分系统
+const POINTS_CURRENCY = 'POINTS'
+const POINTS_NAME = '积分'
+
+// 积分规则
+const INITIAL_POINTS = 1000         // 初始积分
+const PUBLISH_REWARD = 50            // 发布车位奖励积分
+const BOOKING_COST = 10             // 预约车位消耗积分（固定）
+const DAILY_CHECKIN_REWARD = 10     // 每日签到积分
+const CONSECUTIVE_7_BONUS = 100     // 连续7天额外奖励
+
 // 订单状态
 const ORDER_STATUS = {
   PENDING: 'pending',         // 待支付
@@ -49,6 +60,13 @@ const LATE_GRACE_MINUTES = 30
 const EXIT_GRACE_MINUTES = 10
 
 module.exports = {
+  POINTS_CURRENCY,
+  POINTS_NAME,
+  INITIAL_POINTS,
+  PUBLISH_REWARD,
+  BOOKING_COST,
+  DAILY_CHECKIN_REWARD,
+  CONSECUTIVE_7_BONUS,
   ORDER_STATUS,
   SPOT_STATUS,
   COLORS,

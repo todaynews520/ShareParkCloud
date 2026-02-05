@@ -1,6 +1,6 @@
 // pages/publish/index.js - 发布页
 const parkingService = require('../../services/parkingService.js')
-const { validatePrice } = require('../../utils/validator.js')
+const pointsService = require('../../services/pointsService.js')
 const { handleError, showLoading, hideLoading } = require('../../utils/errorHandler.js')
 const CONSTANTS = require('../../config/constants.js')
 const formatter = require('../../utils/formatter.js')
@@ -13,7 +13,6 @@ Page({
       date: '',
       startHour: 13,
       duration: 2,
-      price: 5,
       features: {
         hasCharger: false,
         hasMonitor: false,
@@ -30,16 +29,12 @@ Page({
     // UI状态
     dates: [],
     selectedDateIndex: 0,
-    durationOptions: [1, 2, 4, 8],
-    priceSuggestions: [3, 4, 5],
-    estimatedEarning: 0,
-    estimatedEarningText: '0.00'
+    durationOptions: [1, 2, 4, 8]
   },
 
   onLoad() {
     this.initDates()
     this.setDefaultTime()
-    this.calculateEarning()
   },
 
   /**
@@ -79,18 +74,6 @@ Page({
   },
 
   /**
-   * 计算收益
-   */
-  calculateEarning() {
-    const { price, duration } = this.data.form
-    const earning = Math.round(price * duration * 60 * (1 - CONSTANTS.SERVICE_FEE_RATE))
-    this.setData({
-      estimatedEarning: earning,
-      estimatedEarningText: (earning / 100).toFixed(2)
-    })
-  },
-
-  /**
    * 选择日期
    */
   onDateSelect(e) {
@@ -118,29 +101,6 @@ Page({
     this.setData({
       'form.duration': duration
     })
-    this.calculateEarning()
-  },
-
-  /**
-   * 价格输入
-   */
-  onPriceInput(e) {
-    const price = parseFloat(e.detail.value) || 0
-    this.setData({
-      'form.price': price
-    })
-    this.calculateEarning()
-  },
-
-  /**
-   * 选择建议价格
-   */
-  onSuggestPrice(e) {
-    const price = e.currentTarget.dataset.price
-    this.setData({
-      'form.price': price
-    })
-    this.calculateEarning()
   },
 
   /**
@@ -231,12 +191,6 @@ Page({
       return
     }
 
-    const priceCheck = validatePrice(form.price)
-    if (!priceCheck.valid) {
-      wx.showToast({ title: priceCheck.message, icon: 'none' })
-      return
-    }
-
     // 计算结束时间
     const startHour = form.startHour
     const endHour = (startHour + form.duration) % 24
@@ -253,16 +207,22 @@ Page({
         endTime,
         duration: form.duration,
         price: {
-          hourly: form.price * 100, // 转换为分
-          currency: 'CNY'
+          hourly: 0, // 积分制，无需价格
+          currency: 'POINTS'
         },
         location: this.data.location,
         features: form.features
       })
 
+      // 发布成功奖励积分
+      await pointsService.addPoints(CONSTANTS.PUBLISH_REWARD, '发布车位')
+
       hideLoading()
 
-      wx.showToast({ title: '发布成功', icon: 'success' })
+      wx.showToast({
+        title: `发布成功 +${CONSTANTS.PUBLISH_REWARD}${CONSTANTS.POINTS_NAME}`,
+        icon: 'success'
+      })
 
       setTimeout(() => {
         wx.switchTab({

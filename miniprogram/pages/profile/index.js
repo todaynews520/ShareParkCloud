@@ -1,7 +1,9 @@
 // pages/profile/index.js - 个人中心
 const parkingService = require('../../services/parkingService.js')
 const orderService = require('../../services/orderService.js')
+const pointsService = require('../../services/pointsService.js')
 const { handleError, showLoading, hideLoading } = require('../../utils/errorHandler.js')
+const CONSTANTS = require('../../config/constants.js')
 
 Page({
   data: {
@@ -11,6 +13,12 @@ Page({
     publishList: [],
     orderList: [],
     loading: false,
+    // 积分数据
+    points: 0,
+    lastCheckInDate: '',
+    consecutiveDays: 0,
+    totalCheckInDays: 0,
+    canCheckIn: true,
     stats: {
       publishCount: 0,
       totalEarningText: '0',
@@ -25,6 +33,7 @@ Page({
   onShow() {
     if (this.data.isLoggedIn) {
       this.loadData()
+      this.loadUserPoints()
     }
   },
 
@@ -56,6 +65,30 @@ Page({
 
     if (app.globalData.isLoggedIn) {
       this.loadData()
+      this.loadUserPoints()
+    }
+  },
+
+  /**
+   * 加载用户积分
+   */
+  async loadUserPoints() {
+    try {
+      const res = await pointsService.getUserPoints()
+      if (res.success) {
+        const today = new Date().toDateString()
+        const canCheckIn = res.lastCheckInDate !== today
+
+        this.setData({
+          points: res.points || 0,
+          lastCheckInDate: res.lastCheckInDate || '',
+          consecutiveDays: res.consecutiveDays || 0,
+          totalCheckInDays: res.totalCheckInDays || 0,
+          canCheckIn: canCheckIn
+        })
+      }
+    } catch (err) {
+      console.error('获取积分失败:', err)
     }
   },
 
@@ -154,6 +187,42 @@ Page({
         }
       }
     })
+  },
+
+  /**
+   * 签到
+   */
+  async onCheckIn() {
+    if (!this.data.canCheckIn) {
+      wx.showToast({ title: '今日已签到', icon: 'none' })
+      return
+    }
+
+    showLoading('签到中...')
+
+    try {
+      const res = await pointsService.checkIn()
+      hideLoading()
+
+      if (res.success) {
+        let message = `签到成功 +${res.reward}${CONSTANTS.POINTS_NAME}`
+        if (res.bonus > 0) {
+          message += `\n连续${res.consecutiveDays}天额外奖励 +${res.bonus}${CONSTANTS.POINTS_NAME}`
+        }
+
+        wx.showModal({
+          title: '签到成功',
+          content: message,
+          showCancel: false,
+          success: () => {
+            this.loadUserPoints()
+          }
+        })
+      }
+    } catch (err) {
+      hideLoading()
+      handleError(err, '签到失败')
+    }
   },
 
   /**

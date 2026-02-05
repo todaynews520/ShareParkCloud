@@ -204,85 +204,37 @@
   color: var(--color-primary);
 }
 
-/* 价格设置 */
-.price-suggestions {
-  display: flex;
-  gap: 12rpx;
-}
-
-.suggest-btn {
-  padding: 12rpx 24rpx;
-  background: var(--color-bg);
-  border-radius: 24rpx;
-  font-size: 26rpx;
-  color: var(--color-text-secondary);
-  transition: all 0.2s;
-}
-
-.suggest-btn.active {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.price-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 20rpx 24rpx;
-  background: #ffffff;
-  border: 2rpx solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  margin-left: 16rpx;
-  flex: 1;
-}
-
-.price-symbol {
-  font-size: 32rpx;
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
-.price-input {
-  flex: 1;
-  width: auto;
-  min-width: 80rpx;
-  font-size: 40rpx;
-  font-weight: 700;
-  color: var(--color-accent);
-  text-align: right;
-}
-
-.price-unit {
-  font-size: 24rpx;
-  color: var(--color-text-secondary);
-  margin-left: 4rpx;
-}
-
-.earning-card {
+/* 积分奖励卡片 */
+.points-reward-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24rpx;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  border-radius: 16rpx;
+  padding: 32rpx;
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  border-radius: 24rpx;
 }
 
-.earning-label {
-  font-size: 24rpx;
-  color: var(--color-text-secondary);
+.reward-icon {
+  font-size: 48rpx;
   margin-bottom: 8rpx;
 }
 
-.earning-value {
-  font-size: 48rpx;
-  font-weight: 700;
-  color: var(--color-accent);
+.reward-title {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 8rpx;
 }
 
-.earning-tip {
+.reward-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+
+.reward-tip {
   font-size: 22rpx;
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* 特性选择 */
@@ -346,10 +298,10 @@
   color: var(--color-text-secondary);
 }
 
-.footer-price {
+.footer-points {
   font-size: 36rpx;
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-primary);
 }
 
 .submit-btn {

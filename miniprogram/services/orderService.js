@@ -78,14 +78,17 @@ function getOrderDetail(orderId) {
  * @param {number} duration - 时长（小时）
  */
 function calculatePrice(price, duration) {
-  const baseFee = price * duration  // 车位费
-  const serviceFee = Math.round(baseFee * CONSTANTS.SERVICE_FEE_RATE)  // 服务费
-  const total = baseFee + serviceFee  // 总计
+  // 固定10积分，不按时长计算
+  const pointsCost = CONSTANTS.BOOKING_COST
 
   return {
-    baseFee,
-    serviceFee,
-    total
+    pointsCost: pointsCost,     // 消耗积分
+    baseFee: pointsCost,        // 车位费（积分）
+    serviceFee: 0,            // 服务费（积分）
+    total: pointsCost,         // 总费用（积分）
+    baseFeeText: pointsCost.toString(),
+    serviceFeeText: '0',
+    totalText: pointsCost.toString()
   }
 }
 

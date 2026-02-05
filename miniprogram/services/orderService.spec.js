@@ -13,7 +13,8 @@ global.getApp = jest.fn(() => mockApp)
 
 // Mock CONSTANTS
 jest.mock('../config/constants.js', () => ({
-  SERVICE_FEE_RATE: 0.05
+  SERVICE_FEE_RATE: 0.1,
+  BOOKING_COST: 10
 }))
 
 describe('Order Service', () => {
@@ -240,52 +241,45 @@ describe('Order Service', () => {
     })
   })
 
-  describe('calculatePrice() - 计算费用', () => {
-    test('应该正确计算基础费用', () => {
-      const result = orderService.calculatePrice(500, 2) // 5元/小时, 2小时
+  describe('calculatePrice() - 计算费用（固定积分制）', () => {
+    test('应该返回固定的10积分费用', () => {
+      const result = orderService.calculatePrice(500, 2) // 忽略价格和时长参数
 
-      expect(result.baseFee).toBe(1000) // 500 * 2 = 1000分 = 10元
-    })
-
-    test('应该正确计算服务费', () => {
-      const result = orderService.calculatePrice(500, 2)
-
-      expect(result.serviceFee).toBe(50) // 1000 * 0.05 = 50分
-    })
-
-    test('应该正确计算总费用', () => {
-      const result = orderService.calculatePrice(500, 2)
-
-      expect(result.total).toBe(1050) // 1000 + 50 = 1050分
-    })
-
-    test('应该处理零时长', () => {
-      const result = orderService.calculatePrice(500, 0)
-
-      expect(result.baseFee).toBe(0)
+      expect(result.pointsCost).toBe(10)
+      expect(result.baseFee).toBe(10)
       expect(result.serviceFee).toBe(0)
-      expect(result.total).toBe(0)
+      expect(result.total).toBe(10)
     })
 
-    test('应该处理大额订单', () => {
-      const result = orderService.calculatePrice(1000, 10) // 10元/小时, 10小时
+    test('应该正确返回文本格式', () => {
+      const result = orderService.calculatePrice(500, 2)
 
-      expect(result.baseFee).toBe(10000) // 100元
-      expect(result.serviceFee).toBe(500) // 5元
-      expect(result.total).toBe(10500) // 105元
+      expect(result.baseFeeText).toBe('10')
+      expect(result.serviceFeeText).toBe('0')
+      expect(result.totalText).toBe('10')
     })
 
-    test('应该向上取整服务费', () => {
-      const result = orderService.calculatePrice(333, 3) // 999分
+    test('无论价格和时长如何都应返回10积分', () => {
+      const result1 = orderService.calculatePrice(100, 1)
+      expect(result1.total).toBe(10)
 
-      expect(result.baseFee).toBe(999)
-      expect(result.serviceFee).toBe(50) // 999 * 0.05 = 49.95 -> 50
-      expect(result.total).toBe(1049)
+      const result2 = orderService.calculatePrice(1000, 10)
+      expect(result2.total).toBe(10)
+
+      const result3 = orderService.calculatePrice(0, 0)
+      expect(result3.total).toBe(10)
+    })
+
+    test('应该正确返回积分成本字段', () => {
+      const result = orderService.calculatePrice(500, 2)
+
+      expect(result.pointsCost).toBe(10)
+      expect(typeof result.pointsCost).toBe('number')
     })
   })
 
   describe('综合测试', () => {
-    test('应该支持完整的订单流程', async () => {
+    test('应该支持完整的订单流程（积分制）', async () => {
       // 1. 创建订单
       const createResult = { success: true, orderId: 'order-123' }
       wx.cloud.callFunction.mockResolvedValueOnce({ result: createResult })
@@ -298,9 +292,10 @@ describe('Order Service', () => {
       const create = await orderService.createOrder(orderData)
       expect(create.orderId).toBe('order-123')
 
-      // 2. 计算价格
+      // 2. 计算价格（固定10积分）
       const price = orderService.calculatePrice(500, 2)
-      expect(price.total).toBe(1050)
+      expect(price.total).toBe(10)
+      expect(price.pointsCost).toBe(10)
 
       // 3. 支付订单
       const payResult = { success: true }
@@ -320,7 +315,7 @@ describe('Order Service', () => {
         _id: 'order-123',
         spotNumber: 'A001',
         status: 'paid',
-        totalFee: 1050
+        totalFee: 10
       }
 
       mockApp.getDB.mockReturnValue({
@@ -332,7 +327,7 @@ describe('Order Service', () => {
       })
 
       const detail = await orderService.getOrderDetail('order-123')
-      expect(detail.data.totalFee).toBe(1050)
+      expect(detail.data.totalFee).toBe(10)
     })
 
     test('应该处理订单列表分页', async () => {
@@ -357,17 +352,28 @@ describe('Order Service', () => {
   })
 
   describe('边界情况', () => {
-    test('应该处理极端价格计算', () => {
+    test('应该忽略输入参数，始终返回固定10积分', () => {
       const result1 = orderService.calculatePrice(1, 1) // 最低价格
-      expect(result1.total).toBe(1) // 1分
+      expect(result1.total).toBe(10)
 
       const result2 = orderService.calculatePrice(10000, 24) // 最高价格
-      expect(result2.total).toBe(252000) // 240000 + 12000
+      expect(result2.total).toBe(10)
+
+      const result3 = orderService.calculatePrice(0, 0) // 零值
+      expect(result3.total).toBe(10)
     })
 
-    test('应该处理小数价格输入', () => {
+    test('应该处理小数价格输入（仍返回10积分）', () => {
       const result = orderService.calculatePrice(5.5, 2)
-      expect(result.baseFee).toBe(11)
+      expect(result.total).toBe(10)
+    })
+
+    test('服务费应该始终为0', () => {
+      const result1 = orderService.calculatePrice(500, 2)
+      expect(result1.serviceFee).toBe(0)
+
+      const result2 = orderService.calculatePrice(1000, 10)
+      expect(result2.serviceFee).toBe(0)
     })
   })
 })

@@ -1,10 +1,12 @@
 // pages/book/index.js - 预约页
 const parkingService = require('../../services/parkingService.js')
 const orderService = require('../../services/orderService.js')
+const pointsService = require('../../services/pointsService.js')
 const { validatePlateNumber, formatPlateNumber } = require('../../utils/validator.js')
 const { handleError, showLoading, hideLoading } = require('../../utils/errorHandler.js')
 const formatter = require('../../utils/formatter.js')
 const cache = require('../../utils/cache.js')
+const CONSTANTS = require('../../config/constants.js')
 
 Page({
   data: {
@@ -71,14 +73,15 @@ Page({
 
       console.log('处理后的车位信息:', processedSpotInfo)
 
-      // 格式化价格显示
+      // 格式化费用显示（积分）
       const pricingText = {
+        pointsCost: pricing.pointsCost,
         baseFee: pricing.baseFee,
         serviceFee: pricing.serviceFee,
         total: pricing.total,
-        baseFeeText: (pricing.baseFee / 100).toFixed(2),
-        serviceFeeText: (pricing.serviceFee / 100).toFixed(2),
-        totalText: (pricing.total / 100).toFixed(2)
+        baseFeeText: pricing.baseFeeText,
+        serviceFeeText: pricing.serviceFeeText,
+        totalText: pricing.totalText
       }
 
       this.setData({
@@ -154,10 +157,32 @@ Page({
       return
     }
 
+    // 检查积分是否足够
+    try {
+      const pointsRes = await pointsService.getUserPoints()
+      if (!pointsRes.success || pointsRes.points < CONSTANTS.BOOKING_COST) {
+        wx.showModal({
+          title: '积分不足',
+          content: `预约需要${CONSTANTS.BOOKING_COST}${CONSTANTS.POINTS_NAME}，当前${pointsRes.points || 0}${CONSTANTS.POINTS_NAME}`,
+          confirmText: '去签到',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              wx.switchTab({ url: '/pages/profile/index' })
+            }
+          }
+        })
+        return
+      }
+    } catch (err) {
+      console.error('获取积分失败:', err)
+      // 继续流程，让云函数处理积分检查
+    }
+
     // 确认弹窗
     const confirmed = await wx.showModal({
       title: '确认预约',
-      content: `预约车位：${spotInfo.spotNumber || '未知'}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：¥${pricing.totalText}`
+      content: `预约车位：${spotInfo.spotNumber || '未知'}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：${pricing.totalText}${CONSTANTS.POINTS_NAME}`
     })
 
     if (!confirmed.confirm) return

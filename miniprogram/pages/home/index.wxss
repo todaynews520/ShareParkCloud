@@ -162,6 +162,17 @@
   align-items: baseline;
 }
 
+/* 状态样式 */
+.spot-status {
+  margin-left: auto;
+}
+
+.status-text {
+  font-size: 24rpx;
+  color: #22c55e;
+  font-weight: 500;
+}
+
 .price-symbol {
   font-size: 24rpx;
   color: var(--color-accent);

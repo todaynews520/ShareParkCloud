@@ -2,7 +2,7 @@
   <!-- 头部 -->
   <view class="header">
     <text class="header-title">分享我的车位</text>
-    <text class="header-subtitle">让闲置车位帮助邻居，顺便赚取收益</text>
+    <text class="header-subtitle">让闲置车位帮助邻居，发布可获得积分奖励</text>
   </view>
 
   <!-- 车位号输入 -->
@@ -85,44 +85,12 @@
     </view>
   </view>
 
-  <!-- 价格设置 -->
-  <view class="card">
-    <view class="card-title">价格设置</view>
-
-    <view class="form-item">
-      <text class="label">建议价</text>
-      <view class="price-suggestions">
-        <view
-          wx:for="{{priceSuggestions}}"
-          wx:key="*this"
-          class="suggest-btn {{form.price === item ? 'active' : ''}}"
-          bindtap="onSuggestPrice"
-          data-price="{{item}}"
-        >
-          ¥{{item}}
-        </view>
-      </view>
-    </view>
-
-    <view class="form-item">
-      <text class="label">自定义价</text>
-      <view class="price-input-wrap">
-        <text class="price-symbol">¥</text>
-        <input
-          class="price-input"
-          type="digit"
-          value="{{form.price}}"
-          bindinput="onPriceInput"
-        />
-        <text class="price-unit">/小时</text>
-      </view>
-    </view>
-
-    <view class="earning-card">
-      <text class="earning-label">预计收益</text>
-      <text class="earning-value">¥{{estimatedEarningText}}</text>
-      <text class="earning-tip">含服务费</text>
-    </view>
+  <!-- 积分奖励提示 -->
+  <view class="card points-reward-card">
+    <text class="reward-icon">💎</text>
+    <text class="reward-title">发布奖励</text>
+    <text class="reward-value">+50 积分</text>
+    <text class="reward-tip">帮助邻居可获得积分奖励</text>
   </view>
 
   <!-- 特性选择 -->
@@ -159,8 +127,8 @@
   <!-- 底部按钮 -->
   <view class="footer">
     <view class="footer-info">
-      <text class="footer-label">预计收益</text>
-      <text class="footer-price">¥{{estimatedEarningText}}</text>
+      <text class="footer-label">发布奖励</text>
+      <text class="footer-points">+50 积分</text>
     </view>
     <button class="submit-btn" bindtap="onSubmit">立即发布</button>
   </view>
