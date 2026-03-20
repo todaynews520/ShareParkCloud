@@ -2,7 +2,7 @@
   <!-- 车位信息卡片 -->
   <view class="info-card">
     <view class="card-header">
-      <text class="spot-number">{{spotInfo.spot_number}}号</text>
+      <text class="spot-number">{{spotInfo.spotNumber || spotInfo.spot_number}}号</text>
       <view class="status-badge">可用</view>
     </view>
     <text class="spot-location">{{spotInfo.locationName || '未知位置'}}</text>
@@ -26,7 +26,7 @@
       <text class="detail-icon">⏰</text>
       <view class="detail-content">
         <text class="detail-label">时段</text>
-        <text class="detail-value">{{spotInfo.start_time}}-{{spotInfo.end_time}}</text>
+        <text class="detail-value">{{spotInfo.startTime || spotInfo.start_time}}-{{spotInfo.endTime || spotInfo.end_time}}</text>
       </view>
     </view>
     <view class="detail-item">

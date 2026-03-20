@@ -33,7 +33,17 @@ Page({
 
     try {
       const res = await parkingService.getParkingDetail(this.spotId)
-      const spotInfo = res.data
+      const rawSpotInfo = res.data
+
+      // 统一字段命名（camelCase 优先），必要时兼容旧字段（snake_case）
+      const spotInfo = {
+        ...rawSpotInfo,
+        spotNumber: rawSpotInfo?.spotNumber || rawSpotInfo?.spot_number,
+        startTime: rawSpotInfo?.startTime || rawSpotInfo?.start_time || rawSpotInfo?.schedule?.startTime || rawSpotInfo?.schedule?.start_time,
+        endTime: rawSpotInfo?.endTime || rawSpotInfo?.end_time || rawSpotInfo?.schedule?.endTime || rawSpotInfo?.schedule?.end_time,
+        duration: rawSpotInfo?.duration ?? rawSpotInfo?.schedule?.duration,
+        location: rawSpotInfo?.location || {}
+      }
 
       // 计算费用
       const pricing = orderService.calculatePrice(
@@ -101,7 +111,17 @@ Page({
    * 新能源车牌
    */
   onNewEnergy() {
-    this.setData({ plateNumber: '新能源' })
+    const current = (this.data.plateNumber || '').toUpperCase().replace(/[·.]/g, '')
+    if (!current || current.length < 2) {
+      wx.showToast({ title: '请先输入省份+字母，例如 京A', icon: 'none' })
+      return
+    }
+    // 新能源车牌通常在第3位出现 D/F，这里只做一个不致失败的辅助输入
+    if (current.length === 2) {
+      this.setData({ plateNumber: current + 'D' })
+      return
+    }
+    wx.showToast({ title: '请输入完整新能源车牌', icon: 'none' })
   },
 
   /**
@@ -138,7 +158,7 @@ Page({
     // 确认弹窗
     const confirmed = await wx.showModal({
       title: '确认预约',
-      content: `预约车位：${spotInfo.spot_number}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：¥${pricing.totalText}`
+      content: `预约车位：${spotInfo.spotNumber || spotInfo.spot_number || '未知'}号\n车牌：${formatPlateNumber(plateNumber)}\n费用：¥${pricing.totalText}`
     })
 
     if (!confirmed.confirm) return
@@ -151,8 +171,8 @@ Page({
         spotId: this.spotId,
         plateNumber: plateCheck.normalized,
         timeRange: {
-          start: `${spotInfo.date} ${spotInfo.start_time}`,
-          end: `${spotInfo.date} ${spotInfo.end_time}`
+          start: `${spotInfo.date} ${spotInfo.startTime || spotInfo.start_time}`,
+          end: `${spotInfo.date} ${spotInfo.endTime || spotInfo.end_time}`
         },
         pricing
       })

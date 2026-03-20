@@ -1,6 +1,16 @@
 // services/parkingService.js - 车位服务
 const cloudService = require('./cloud.js')
 
+function normalizeSpot(record = {}) {
+  return {
+    ...record,
+    spotNumber: record.spotNumber ?? record.spot_number,
+    startTime: record.startTime ?? record.start_time ?? record.schedule?.startTime,
+    endTime: record.endTime ?? record.end_time ?? record.schedule?.endTime,
+    duration: record.duration ?? record.schedule?.duration
+  }
+}
+
 /**
  * 获取车位列表
  * @param {object} params - 查询参数
@@ -22,10 +32,14 @@ function getParkingList(params = {}) {
       date: _.gte(new Date().toISOString().split('T')[0])
     })
     .orderBy('date', 'asc')
-    .orderBy('start_time', 'asc')
+    .orderBy('startTime', 'asc')
     .limit(limit)
     .skip(skip)
     .get()
+    .then(res => ({
+      ...res,
+      data: (res.data || []).map(normalizeSpot)
+    }))
 }
 
 /**
@@ -36,7 +50,10 @@ function getParkingDetail(spotId) {
   const app = getApp()
   const db = app.getDB()
 
-  return db.collection('parking_releases').doc(spotId).get()
+  return db.collection('parking_releases').doc(spotId).get().then(res => ({
+    ...res,
+    data: normalizeSpot(res.data || {})
+  }))
 }
 
 /**

@@ -64,7 +64,9 @@ Page({
    */
   calculateEarning() {
     const { price, duration } = this.data.form
-    const earning = Math.round(price * duration * 60 * (1 - CONSTANTS.SERVICE_FEE_RATE))
+    // price 单位: 元/小时; earning 以“分”存储，展示时再 /100
+    const baseFeeCents = Math.round(Number(price || 0) * 100 * Number(duration || 0))
+    const earning = Math.round(baseFeeCents * (1 - CONSTANTS.SERVICE_FEE_RATE))
     this.setData({
       estimatedEarning: earning,
       estimatedEarningText: (earning / 100).toFixed(2)

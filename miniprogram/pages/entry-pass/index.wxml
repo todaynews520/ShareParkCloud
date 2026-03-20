@@ -46,7 +46,7 @@
   <view class="order-info">
     <view class="info-row">
       <text class="info-label">车位号</text>
-      <text class="info-value">{{orderData.spotNumber}}号</text>
+      <text class="info-value">{{orderData.spotNumber || orderData.spot_number}}号</text>
     </view>
     <view class="info-row">
       <text class="info-label">日期</text>
@@ -54,7 +54,7 @@
     </view>
     <view class="info-row">
       <text class="info-label">时段</text>
-      <text class="info-value">{{orderData.startTime}} - {{orderData.endTime}}</text>
+      <text class="info-value">{{orderData.startTime || orderData.start_time}} - {{orderData.endTime || orderData.end_time}}</text>
     </view>
   </view>
 

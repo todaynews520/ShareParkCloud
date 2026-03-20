@@ -68,15 +68,15 @@
           wx:key="_id"
           class="list-item"
         >
-          <view class="item-header">
-            <text class="item-title">{{item.spot_number}}号</text>
-            <view class="status-badge {{item.status}}">{{item.status === 'available' ? '进行中' : '已结束'}}</view>
-          </view>
-          <text class="item-time">{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
-          <view class="item-actions" wx:if="{{item.status === 'available'}}">
-            <button class="action-btn cancel" bindtap="onCancelPublish" data-id="{{item._id}}">取消发布</button>
-          </view>
-        </view>
+           <view class="item-header">
+             <text class="item-title">{{item.spotNumber || item.spot_number}}号</text>
+             <view class="status-badge {{item.status}}">{{item.status === 'available' ? '进行中' : '已结束'}}</view>
+           </view>
+           <text class="item-time">{{item.date}} {{item.startTime || item.start_time}}-{{item.endTime || item.end_time}}</text>
+           <view class="item-actions" wx:if="{{item.status === 'available'}}">
+             <button class="action-btn cancel" bindtap="onCancelPublish" data-id="{{item._id}}">取消发布</button>
+           </view>
+         </view>
       </view>
     </view>
 
@@ -93,12 +93,12 @@
           wx:key="_id"
           class="list-item"
         >
-          <view class="item-header">
-            <text class="item-title">{{item.spot_number || '未知'}}号</text>
-            <view class="status-badge {{item.status}}">{{item.status === 'paid' ? '即将开始' : (item.status === 'active' ? '进行中' : '已结束')}}</view>
-          </view>
-          <text class="item-time">{{item.date}} {{item.start_time}}-{{item.end_time}}</text>
-          <text class="item-plate">车牌: {{item.plateNumber}}</text>
+           <view class="item-header">
+             <text class="item-title">{{item.spotNumber || item.spot_number || '未知'}}号</text>
+             <view class="status-badge {{item.status}}">{{item.status === 'paid' ? '即将开始' : (item.status === 'active' ? '进行中' : '已结束')}}</view>
+           </view>
+           <text class="item-time">{{item.date}} {{item.startTime || item.start_time}}-{{item.endTime || item.end_time}}</text>
+           <text class="item-plate">车牌: {{item.plateNumber}}</text>
 
           <!-- 入场凭证按钮 -->
           <view class="item-actions" wx:if="{{item.status === 'paid' || item.status === 'active'}}">

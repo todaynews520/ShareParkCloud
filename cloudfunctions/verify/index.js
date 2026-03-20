@@ -1,5 +1,6 @@
 // cloudfunctions/verify/index.js - 道闸验证云函数
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -8,6 +9,65 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
+function base64UrlEncode(input) {
+  const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input))
+  return buf
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+}
+
+function base64UrlDecodeToString(input) {
+  const padded = String(input).replace(/-/g, '+').replace(/_/g, '/')
+  const padLen = (4 - (padded.length % 4)) % 4
+  return Buffer.from(padded + '='.repeat(padLen), 'base64').toString('utf8')
+}
+
+function timingSafeEqual(a, b) {
+  const aBuf = Buffer.from(String(a))
+  const bBuf = Buffer.from(String(b))
+  if (aBuf.length !== bBuf.length) return false
+  return crypto.timingSafeEqual(aBuf, bBuf)
+}
+
+function verifySignedToken(token, secret) {
+  const parts = String(token || '').split('.')
+  if (parts.length !== 3) {
+    return { ok: false, reason: 'token_format' }
+  }
+  const [headerPart, payloadPart, sigPart] = parts
+  let header
+  let payload
+  try {
+    header = JSON.parse(base64UrlDecodeToString(headerPart))
+    payload = JSON.parse(base64UrlDecodeToString(payloadPart))
+  } catch (e) {
+    return { ok: false, reason: 'token_decode' }
+  }
+  if (!header || header.alg !== 'HS256') {
+    return { ok: false, reason: 'token_alg' }
+  }
+
+  const content = `${headerPart}.${payloadPart}`
+  const expectedSig = base64UrlEncode(crypto.createHmac('sha256', secret).update(content).digest())
+  if (!timingSafeEqual(expectedSig, sigPart)) {
+    return { ok: false, reason: 'token_signature' }
+  }
+
+  return { ok: true, payload }
+}
+
+function tryParseLegacyJsonToken(token) {
+  // 兼容旧实现：直接 JSON.stringify(payload) 作为 token
+  try {
+    const payload = JSON.parse(token)
+    return { ok: true, payload, legacy: true }
+  } catch (e) {
+    return { ok: false }
+  }
+}
+
 exports.main = async (event, context) => {
   const { action, plate, token, gateId } = event
 
@@ -15,6 +75,13 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'checkPlate':
         // 车牌验证
+        if (!plate) {
+          return {
+            valid: false,
+            reason: 'plate_required',
+            message: '缺少车牌'
+          }
+        }
         const orderRes = await db.collection('orders')
           .where({
             plateNumber: plate.toUpperCase(),
@@ -52,10 +119,20 @@ exports.main = async (event, context) => {
 
       case 'checkQr':
         // 二维码验证
-        let payload
-        try {
-          payload = JSON.parse(token)
-        } catch (e) {
+        if (!token) {
+          return {
+            valid: false,
+            reason: 'token_required',
+            message: '缺少凭证'
+          }
+        }
+
+        const secret = process.env.JWT_SECRET || process.env.QR_TOKEN_SECRET || 'dev-secret'
+        const signedRes = verifySignedToken(token, secret)
+        const legacyRes = signedRes.ok ? null : tryParseLegacyJsonToken(token)
+        const payload = signedRes.ok ? signedRes.payload : (legacyRes && legacyRes.ok ? legacyRes.payload : null)
+
+        if (!payload || !payload.orderId) {
           return {
             valid: false,
             reason: 'token_invalid',
@@ -64,12 +141,39 @@ exports.main = async (event, context) => {
         }
 
         // 检查过期时间
-        const now = Math.floor(Date.now() / 1000)
-        if (payload.exp && now > payload.exp) {
+        const nowTs = Math.floor(Date.now() / 1000)
+        if (payload.exp && nowTs > payload.exp) {
           return {
             valid: false,
             reason: 'token_expired',
             message: '二维码已过期'
+          }
+        }
+
+        // 校验订单存在且状态允许
+        const orderRes2 = await db.collection('orders').doc(payload.orderId).get()
+        const order2 = orderRes2.data
+        if (!order2) {
+          return {
+            valid: false,
+            reason: 'order_not_found',
+            message: '订单不存在'
+          }
+        }
+
+        if (!['paid', 'active'].includes(order2.status)) {
+          return {
+            valid: false,
+            reason: 'order_status_invalid',
+            message: '订单状态无效'
+          }
+        }
+
+        if (payload.plate && order2.plateNumber && String(payload.plate).toUpperCase() !== String(order2.plateNumber).toUpperCase()) {
+          return {
+            valid: false,
+            reason: 'plate_mismatch',
+            message: '车牌不匹配'
           }
         }
 
@@ -87,7 +191,9 @@ exports.main = async (event, context) => {
 
         return {
           valid: true,
-          orderId: payload.orderId
+          orderId: payload.orderId,
+          type: payload.type || (order2.status === 'paid' ? 'entry' : 'exit'),
+          allowOpen: true
         }
 
       default:

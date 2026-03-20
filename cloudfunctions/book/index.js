@@ -8,6 +8,32 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
+function normalizeSpot(spot = {}) {
+  const date = spot.date ?? spot.schedule?.date
+  const startTime = spot.startTime ?? spot.start_time ?? spot.schedule?.startTime
+  const endTime = spot.endTime ?? spot.end_time ?? spot.schedule?.endTime
+  const duration = spot.duration ?? spot.schedule?.duration
+  const spotNumber = spot.spotNumber ?? spot.spot_number ?? spot.schedule?.spotNumber
+
+  return {
+    ...spot,
+    date,
+    startTime,
+    endTime,
+    duration,
+    spotNumber
+  }
+}
+
+function normalizeOrder(order = {}) {
+  return {
+    ...order,
+    spotNumber: order.spotNumber ?? order.spot_number,
+    startTime: order.startTime ?? order.start_time,
+    endTime: order.endTime ?? order.end_time
+  }
+}
+
 // 生成6位静态验证码
 function generateStaticCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // 排除易混淆字符
@@ -29,7 +55,7 @@ exports.main = async (event, context) => {
         // 创建订单
         // 先获取车位信息
         const spotRes = await db.collection('parking_releases').doc(orderData.spotId).get()
-        const spot = spotRes.data
+        const spot = normalizeSpot(spotRes.data)
 
         if (!spot) {
           return {
@@ -38,22 +64,37 @@ exports.main = async (event, context) => {
           }
         }
 
+        const date = spot.date
+        const startTime = spot.startTime
+        const endTime = spot.endTime
+
+        // 兜底：如果前端没传 timeRange（或传错），按车位时间生成
+        const timeRange = (orderData && orderData.timeRange && orderData.timeRange.start && orderData.timeRange.end)
+          ? orderData.timeRange
+          : {
+              start: (date && startTime) ? `${date} ${startTime}` : '',
+              end: (date && endTime) ? `${date} ${endTime}` : ''
+            }
+
         const createRes = await db.collection('orders').add({
           data: {
             userId: openid,
             spotId: orderData.spotId,
-            // 保存车位信息到订单
-            spot_number: spot.spotNumber,
+            // 保存车位信息到订单（统一 camelCase）
+            spotNumber: spot.spotNumber,
             date: spot.date,
-            start_time: spot.startTime,
-            end_time: spot.endTime,
+            startTime: spot.startTime,
+            endTime: spot.endTime,
+            duration: spot.duration,
+            location: spot.location || null,
             // 原有数据
-            plateNumber: orderData.plateNumber,
-            timeRange: orderData.timeRange,
+            plateNumber: (orderData.plateNumber || '').toUpperCase().replace(/[·.]/g, ''),
+            timeRange: timeRange,
             pricing: orderData.pricing,
             status: 'pending',
             entryPass: {},
-            createdAt: db.serverDate()
+            createdAt: db.serverDate(),
+            updatedAt: db.serverDate()
           }
         })
 
@@ -80,7 +121,8 @@ exports.main = async (event, context) => {
               staticCode: staticCode,
               generatedAt: db.serverDate(),
               refreshInterval: 30
-            }
+            },
+            updatedAt: db.serverDate()
           }
         })
 
@@ -107,7 +149,7 @@ exports.main = async (event, context) => {
 
         return {
           success: true,
-          data: listRes.data
+          data: (listRes.data || []).map(normalizeOrder)
         }
 
       default:

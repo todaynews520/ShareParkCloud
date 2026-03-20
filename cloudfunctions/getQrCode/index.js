@@ -1,11 +1,31 @@
 // cloudfunctions/getQrCode/index.js - 生成二维码云函数
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
 })
 
 const db = cloud.database()
+
+function base64UrlEncode(input) {
+  const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input))
+  return buf
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+}
+
+function signToken(payload, secret) {
+  const header = { alg: 'HS256', typ: 'JWT' }
+  const headerPart = base64UrlEncode(JSON.stringify(header))
+  const payloadPart = base64UrlEncode(JSON.stringify(payload))
+  const content = `${headerPart}.${payloadPart}`
+  const sig = crypto.createHmac('sha256', secret).update(content).digest()
+  const sigPart = base64UrlEncode(sig)
+  return `${content}.${sigPart}`
+}
 
 exports.main = async (event, context) => {
   const { orderId } = event
@@ -23,7 +43,7 @@ exports.main = async (event, context) => {
 
     const order = orderRes.data
 
-    // 生成JWT Token（简化版，实际应使用jsonwebtoken库）
+    // 生成可校验 Token（HMAC-SHA256，演示用；生产可替换为标准 JWT 库）
     const now = Math.floor(Date.now() / 1000)
     const payload = {
       orderId: orderId,
@@ -37,9 +57,8 @@ exports.main = async (event, context) => {
       type: order.status === 'paid' ? 'entry' : 'exit'
     }
 
-    // 简化：直接返回payload字符串作为token
-    // 实际生产环境应使用JWT签名
-    const token = JSON.stringify(payload)
+    const secret = process.env.JWT_SECRET || process.env.QR_TOKEN_SECRET || 'dev-secret'
+    const token = signToken(payload, secret)
 
     // 生成小程序码
     const qrRes = await cloud.openapi.wxacode.get({

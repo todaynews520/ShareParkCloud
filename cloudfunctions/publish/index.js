@@ -8,6 +8,16 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
+function normalizeSpot(record = {}) {
+  return {
+    ...record,
+    spotNumber: record.spotNumber ?? record.spot_number ?? record.schedule?.spotNumber,
+    startTime: record.startTime ?? record.start_time ?? record.schedule?.startTime,
+    endTime: record.endTime ?? record.end_time ?? record.schedule?.endTime,
+    duration: record.duration ?? record.schedule?.duration
+  }
+}
+
 exports.main = async (event, context) => {
   const { action, userId, publishData, publishId } = event
   const wxContext = cloud.getWXContext()
@@ -64,7 +74,7 @@ exports.main = async (event, context) => {
 
         return {
           success: true,
-          data: listRes.data
+          data: (listRes.data || []).map(normalizeSpot)
         }
 
       case 'cancel':
